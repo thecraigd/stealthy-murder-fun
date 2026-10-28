@@ -152,6 +152,11 @@ kbd {
 @keyframes tipin { from { transform: translateX(-30px); opacity: 0; } }
 body.touch-mode .tipbox { top: auto; bottom: calc(120px + var(--safe-b)); left: calc(50% - min(160px, 23vw)); max-width: min(320px, 46vw); }
 
+.sense-mark {
+  position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 15px; background: rgba(255, 255, 255, 0.85); border: 2px solid var(--ink); box-shadow: 0 0 10px rgba(180, 140, 255, 0.9); will-change: transform;
+}
+
 /* world overlays */
 .world-layer, .pop-layer, .edge-layer { position: absolute; inset: 0; pointer-events: none; }
 .bubble {
@@ -270,6 +275,10 @@ body.touch-mode .item-desc { bottom: calc(76px + var(--safe-b)); }
 .tagline { margin: 16px 0 18px; font-size: clamp(14px, 2.4vw, 18px); text-shadow: 0 2px 0 var(--ink), 0 0 10px rgba(0,0,0,0.7); max-width: 520px; }
 .btn-col { display: flex; flex-direction: column; gap: 10px; width: min(300px, 80vw); }
 .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+.panel:not(.title) > .btn-row {
+  position: sticky; bottom: -20px; margin: 12px -22px -20px; padding: 14px 22px 16px; z-index: 2;
+  background: linear-gradient(rgba(27, 22, 34, 0), rgba(27, 22, 34, 0.97) 35%);
+}
 .mbtn {
   padding: 11px 20px; border-radius: 14px; border: 3px solid var(--ink); background: var(--paper); color: var(--ink); font: 700 17px var(--font);
   box-shadow: 0 4px 0 var(--ink); cursor: pointer; transition: transform 0.08s;
@@ -361,6 +370,12 @@ body.touch-mode .item-desc { bottom: calc(76px + var(--safe-b)); }
   .rook-por { width: 84px; height: 84px; }
 }
 @media (max-height: 520px) {
+  .panel:not(.title) > .btn-row { bottom: -14px; margin: 8px -14px -14px; padding: 10px 14px 12px; }
+  .tcard img { max-width: 86px; }
+  .story { font-size: 13px; line-height: 1.4; }
+  .story p { margin-bottom: 5px; }
+  .tn { font-size: 13px; }
+  .card { padding: 7px; }
   .logo .l1, .logo .l2 { font-size: 56px; }
   .tagline { margin: 8px 0; }
   .btn-col { flex-direction: row; flex-wrap: wrap; justify-content: center; width: 96vw; }

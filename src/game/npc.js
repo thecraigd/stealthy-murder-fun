@@ -313,6 +313,11 @@ export class NPC {
 
   panic(fromX, fromZ, scream = true) {
     if (this.inert || this.isGuard || this.scripted?.noPanic) return;
+    if (this.def.brawler && this.state !== 'combat') {
+      this.say('Who\u2019s shooting at Brick\u2019s party?!', 2);
+      this.setState('search', { center: { x: fromX, z: fromZ }, t: 20, hurry: true });
+      return;
+    }
     if (this.state === 'flee' || this.state === 'cower') return;
     this.face = 'scared';
     if (scream) {
@@ -412,7 +417,7 @@ export class NPC {
     if (kind === 'illegal' || kind === 'compromised' || kind === 'enforcer') {
       if (kind === 'enforcer') this.say(LINES.enforcer, 2);
       g.compromise(this);
-      if (this.isGuard) {
+      if (this.isGuard || this.def.brawler) {
         this.startCombat();
       } else {
         this.knowsCompromised = true;
@@ -454,8 +459,8 @@ export class NPC {
     if (this.state === 'combat' || this.inert) return;
     this.setState('combat', { lastKnown: { ...g.player.pos }, aim: 0 });
     this.face = 'angry';
-    this.say(LINES.spotted, 2);
-    this.setHeld('pistol');
+    this.say(this.def.brawler ? 'You picked the wrong island, pal!' : LINES.spotted, 2);
+    if (!this.def.brawler) this.setHeld('pistol');
     g.director.spotted(this);
     // radio: nearby guards join in
     for (const o of g.npcs) {
@@ -874,19 +879,26 @@ export class NPC {
       s.lastKnown = { x: p.pos.x, z: p.pos.z };
       s.lostT = 0;
       g.director.hunting(this);
-      if (d < 1.3 && this.meleeCD <= 0) {
+      const brawler = !!this.def.brawler;
+      if (d < (brawler ? 1.5 : 1.3) && this.meleeCD <= 0) {
         this.stop();
         this.faceTo(p.pos.x, p.pos.z, dt, 14);
-        this.meleeCD = 1.3;
+        this.meleeCD = brawler ? 1.0 : 1.3;
         this.char.play('punch', 0.4);
+        if (brawler && Math.random() < 0.5) this.say(pick(['BRICK SMASH!', 'Come here, little man!', 'HYAAA!', 'Nobody touches Brick\u2019s friends!']), 1.2);
         after(0.18, () => {
-          if (!this.inert && this.distTo(p.pos) < 1.6 && !p.hidden) {
-            p.hurt(16, this);
+          if (!this.inert && this.distTo(p.pos) < 1.7 && !p.hidden) {
+            p.hurt(brawler ? 26 : 16, this);
             g.audio.sfx('punch', p.pos);
-            g.fx.pop(p.pos.x, 1.6, p.pos.z, 'POW!', '#ff5a3a');
+            g.fx.pop(p.pos.x, 1.6, p.pos.z, brawler ? 'KA-POW!' : 'POW!', '#ff5a3a');
+            if (brawler) g.cam.shake(0.3, 0.25);
           }
         });
         return 'idle';
+      }
+      if (brawler) {
+        if (!this.path || this.stateT % 0.5 < dt) this.goTo(p.pos.x, p.pos.z, RUN * 0.95);
+        return 'run';
       }
       if (d > 8.5 || (s.aim || 0) < 0 && d > 3) {
         if (!this.path || this.stateT % 0.6 < dt) this.goTo(p.pos.x, p.pos.z, RUN);
@@ -907,12 +919,29 @@ export class NPC {
     // lost sight
     s.lostT = (s.lostT || 0) + dt;
     s.aim = 0;
+    if (s.checkHide && p.hidden === s.checkHide) {
+      const hs = s.checkHide;
+      if (this.distTo(hs) > 1.1) {
+        if (!this.path || this.stateT % 0.7 < dt) this.goTo(hs.x, hs.z, RUN);
+        return 'run';
+      }
+      // Got you!
+      this.stop();
+      this.say(pick(['Nice try. OUT!', 'Found you!', 'Hide and seek\u2019s over, pal.']), 2);
+      g.interactions.leaveHiding();
+      g.fx.pop(hs.x, 1.8, hs.z, 'YOINK!', '#ffb02e');
+      g.cam.shake(0.2, 0.2);
+      p.hurt(10, this);
+      s.checkHide = null;
+      s.lostT = 0;
+      return 'idle';
+    }
     if (s.lastKnown) {
       if (!this.path && this.distTo(s.lastKnown) > 1) this.goTo(s.lastKnown.x, s.lastKnown.z, RUN);
       if (this.arrived || s.lostT > 7) {
         this.say(LINES.combatLost, 2);
         this.setState('search', { center: s.lastKnown, t: 28, hurry: true });
-        this.setHeld('pistol');
+        if (!this.def.brawler) this.setHeld('pistol');
       }
     }
     return 'run';

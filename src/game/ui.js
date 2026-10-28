@@ -578,6 +578,43 @@ export class UI {
       el.classList.toggle('hostile', e.n.state === 'combat');
     });
 
+    // Sense: highlight interesting things (devices, pickups, hiding spots).
+    this.senseMarks = this.senseMarks || [];
+    let mi = 0;
+    if (g.sensing) {
+      const mark = (x, y, z, icon) => {
+        if (Math.hypot(x - p.pos.x, z - p.pos.z) > 20) return;
+        v.set(x, y, z).project(cam);
+        if (v.z > 1) return;
+        const sx = (v.x * 0.5 + 0.5) * W, sy = (-v.y * 0.5 + 0.5) * H;
+        if (sx < 0 || sx > W || sy < 0 || sy > H) return;
+        let el = this.senseMarks[mi];
+        if (!el) {
+          el = h('div', 'sense-mark');
+          this.worldLayer.appendChild(el);
+          this.senseMarks.push(el);
+        }
+        mi++;
+        if (el._i !== icon) {
+          el._i = icon;
+          el.textContent = icon;
+        }
+        el.style.display = '';
+        el.style.transform = `translate(-50%,-50%) translate(${sx}px,${sy}px)`;
+      };
+      for (const it of g.interactions.list) {
+        if (it.npc || it.bodyDump || typeof it.x !== 'number') continue;
+        if (it.when && !it.when(p)) continue;
+        const lbl = typeof it.label === 'function' ? it.label(p) : it.label;
+        if (!lbl) continue;
+        mark(it.x, 1.3, it.z, it.icon || '\u270B');
+      }
+      for (const pk of g.interactions.pickups) mark(pk.x, pk.y + 0.5, pk.z, pk.outfit ? '\uD83D\uDC54' : ITEMS[pk.id]?.icon || '?');
+      for (const hs of g.level.hideSpots) if (!hs.occupied) mark(hs.x, 1.2, hs.z, '\uD83D\uDEAA');
+      for (const c of g.containers) if (c.bodies.length < c.cap) mark(c.x, 1.0, c.z, '\uD83D\uDCE6');
+    }
+    for (let i = mi; i < this.senseMarks.length; i++) this.senseMarks[i].style.display = 'none';
+
     // waypoint marker
     const wp = g.story?.waypoint();
     if (wp && g.settings.guidance) {
