@@ -288,7 +288,7 @@ export class Menus {
           <p><kbd>M</kbd> big map • <kbd>Esc</kbd> pause</p>
         </div>
         <div class="hcol wide"><h3>🧽 How to be a ghost</h3>
-          <p><b>Disguises</b> get you into places. Each zone shows who’s allowed when you enter. Guards and <b>enforcers</b> (🟧 in Sense) look closely at people wearing <i>their</i> uniform.</p>
+          <p><b>Disguises</b> get you into places. Each zone shows who’s allowed when you enter. Guards and <b>enforcers</b> (orange ★ in Sense) look closely at people wearing <i>their</i> uniform.</p>
           <p><b>Blend in</b> at 🎭 work spots for your disguise (Sense shows them): chop onions, polish glasses, stand guard, dance. While you work, nobody looks twice. Move to stop.</p>
           <p><b>Suspicion meters</b> fill above heads when someone sees something odd. White “?” = curious, red = alarm. Break line of sight and they calm down.</p>
           <p><b>Illegal acts</b> (takedowns, dragging bodies, holding weapons, tampering) are seen instantly. Do them where nobody is looking.</p>
