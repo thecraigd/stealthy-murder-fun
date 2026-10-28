@@ -21,6 +21,7 @@ export class Director {
       this.stats.spotted++;
       this.stats.combat++;
       g.audio.stinger('spotted');
+      g.tips?.show('spotted');
       g.ui.toast('You’ve been spotted!', 'danger');
       g.cam.shake(0.15, 0.2);
     }
@@ -48,7 +49,8 @@ export class Director {
       if (n.state === 'combat') {
         if (g.time - this.lastHuntT < 4) combat = true;
         else search = true;
-      } else if (n.state === 'search' || n.state === 'warn') search = true;
+      } else if (n.state === 'search') search = true;
+      else if (n.state === 'warn') sus = Math.max(sus, 1);
       if (n.suspicion > sus) sus = n.suspicion;
     }
     let lvl = 'calm';
@@ -76,6 +78,7 @@ export class Director {
     if (p.flags.hidden) return { text: p.perched ? 'Perched' : 'Hidden', cls: 'good' };
     if (p.flags.compromised) return { text: 'Compromised', cls: 'danger' };
     if (this.level === 'search') return { text: 'Search in progress', cls: 'warn' };
+    if (g.npcs.some((n) => n.state === 'warn' && !n.inert)) return { text: 'Being told off', cls: 'warn' };
     if (p.flags.trespass) return { text: 'Trespassing', cls: 'warn' };
     if (this.level === 'suspicious') return { text: 'Suspicious', cls: 'warn' };
     return { text: 'Undetected', cls: 'good' };

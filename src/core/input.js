@@ -43,7 +43,7 @@ export class Input {
       KeyE: 'primary', Enter: 'primary', KeyF: 'secondary', Space: 'use', KeyQ: 'itemNext',
       KeyC: 'sneak', ControlLeft: 'sneak', KeyG: 'drop', Escape: 'pause', KeyP: 'pause', KeyM: 'map',
       BracketLeft: 'rotL', BracketRight: 'rotR', Digit0: 'holster', Backquote: 'holster', KeyH: 'help',
-      KeyZ: 'rotL', KeyX: 'rotR',
+      KeyZ: 'rotL', KeyX: 'rotR', KeyT: 'throw',
     };
     window.addEventListener('keydown', (e) => {
       if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;

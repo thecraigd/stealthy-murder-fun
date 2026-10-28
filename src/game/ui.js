@@ -51,6 +51,8 @@ export class UI {
     // toasts + hint
     this.toasts = h('div', 'toasts');
     this.hud.appendChild(this.toasts);
+    this.tipBox = h('div', 'tipbox');
+    this.hud.appendChild(this.tipBox);
     this.hint = h('div', 'hint hidden');
     this.hud.appendChild(this.hint);
     this.subtitles = h('div', 'subtitles');
@@ -173,6 +175,16 @@ export class UI {
       el.classList.add('fade');
       setTimeout(() => el.remove(), 500);
     }, 3600);
+  }
+  tip(icon, text) {
+    const el = h('div', 'tip', `<span class="tip-ic">${icon}</span><span>${text}</span>`);
+    this.tipBox.innerHTML = '';
+    this.tipBox.appendChild(el);
+    clearTimeout(this._tipT);
+    this._tipT = setTimeout(() => {
+      el.classList.add('fade');
+      setTimeout(() => el.remove(), 500);
+    }, 6500);
   }
   bigText(title, sub = '', kind = '') {
     this.big.innerHTML = `<div class="bt-title ${kind}">${title}</div>${sub ? `<div class="bt-sub">${sub}</div>` : ''}`;

@@ -356,6 +356,7 @@ export class Interactions {
         g.ui.toast(`Disguised as ${OUTFITS[n.outfit].name}`, 'good', '👔');
         g.director.stats.disguises++;
         g.challenges.event('disguise', { outfit: n.outfit });
+        g.tips.show('disguise');
         if (wasDragging) p.drag = n;
       },
     });
@@ -376,6 +377,7 @@ export class Interactions {
           g.ui.toast(`Disguised as ${OUTFITS[it.outfit].name}`, 'good', '👔');
           g.director.stats.disguises++;
           g.challenges.event('disguise', { outfit: it.outfit });
+          g.tips.show('disguise');
         },
       });
       return;
@@ -463,7 +465,7 @@ export class Interactions {
   }
 
   // ---------------------------------------------------------------- item use
-  useItem(input, aimed) {
+  useItem(input, aimed, forceThrow = false) {
     const g = this.game;
     const p = g.player;
     if (!p.alive || p.busy || p.hidden || p.drag || p.perched) return;
@@ -475,6 +477,11 @@ export class Interactions {
     const d = ITEMS[sel.id];
     if (d.type === 'gun') return this.shoot(sel, aimed);
     if (d.type === 'place') return this.placePeel(sel);
+    if (forceThrow) {
+      if (d.type === 'throw' || d.throwable || d.type === 'melee') return this.throwItem(sel, aimed);
+      g.ui.toast('That can\u2019t be thrown.', 'info');
+      return;
+    }
     if (d.type === 'melee' && !aimed) return this.swing(sel);
     if (d.type === 'throw' || d.throwable || (d.type === 'melee' && aimed)) return this.throwItem(sel, aimed);
     if (d.type === 'poison') g.ui.toast('Look for a drink or food to poison — a prompt will appear.', 'info', d.icon);

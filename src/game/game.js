@@ -15,6 +15,7 @@ import { UI } from './ui.js';
 import { Story, TARGETS, OPPS } from './story.js';
 import { SetPieces } from './setpieces.js';
 import { ITEMS } from './items.js';
+import { Tips } from './tips.js';
 import { OUTFITS } from './outfits.js';
 import { WATER_Y } from './terrain.js';
 
@@ -107,6 +108,8 @@ export class Game extends Emitter {
     this.setpieces = new SetPieces(this);
     this.containers = this.level.containers.map((c) => ({ ...c, bodies: [] }));
     this.cones = new VisionCones(this);
+    this.tips = new Tips(this);
+    this.tutorial = (id) => this.tips.show(id);
     window.addEventListener('resize', () => this.onResize());
     this.onResize();
     this.on('inventory', () => {});
@@ -258,6 +261,7 @@ export class Game extends Emitter {
       if (input.pressed('drop')) this.dropSelected();
       // item use: keyboard space / touch tap = auto-aim; mouse click / touch drag = aimed
       if (input.pressed('use')) this.interactions.useItem(input, null);
+      if (input.pressed('throw')) this.interactions.useItem(input, null, true);
       if (input.pressed('useAimed') && input.aim) this.interactions.useItem(input, this.aimFromTouch(input.aim));
       if (input.pressed('click') && !this.mobileTouchActive()) this.interactions.useItem(input, this.mouseGround());
     }
@@ -274,6 +278,7 @@ export class Game extends Emitter {
     this.director.update(dt);
     this.story.update(dt);
     this.challenges.update(dt);
+    this.tips.update(rawDt);
     this.fx.update(rawDt);
     this.cones.update(dt);
     this.updateSense();
@@ -362,7 +367,7 @@ export class Game extends Emitter {
       // also fade roofs between camera and player (player just south of building)
       let want = inside ? 1 : 0;
       if (!inside && this.sensing) want = 0.85;
-      if (this.sniper) want = 0;
+      if (this.sniper) want = r.id === 'lighthouse' ? 1 : 0;
       r.fade.value = damp(r.fade.value, want, 8, dt);
       r.group.visible = r.fade.value < 0.99;
     }
@@ -578,6 +583,7 @@ export class Game extends Emitter {
     if (n.inert) return;
     if (this.player.drag === n) return;
     n.knockOut(cause);
+    this.tips.show('ko');
     this.fx.stars(n, 5);
     this.audio.sfx('thud', n.pos);
     this.director.stats.kos++;
@@ -757,7 +763,12 @@ export class Game extends Emitter {
     cam.lookAt(cam.position.clone().add(dir));
     s.shotCD -= rawDt;
     if ((input.pressed('use') || input.pressed('click') || input.pressed('useAimed')) && s.shotCD <= 0) this.sniperFire(dir);
-    if (input.pressed('primary')) this.setpieces.exitPerch();
+    if (input.pressed('primary')) {
+      input.edges.delete('primary');
+      this.setpieces.exitPerch();
+    }
+    input.edges.delete('use');
+    input.edges.delete('click');
     this.ui.setPrompts({ label: 'Climb down', icon: '⬇' }, { label: s.fov > 20 ? 'Zoom in' : 'Zoom out', icon: '🔍' }, 'Fire');
   }
   sniperFire(dir) {

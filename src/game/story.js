@@ -151,6 +151,7 @@ export class Story {
     }
     if (id === 'ledger') this.flag('code_known');
     if (!this.tracked && g.settings.guidance) this.track(id);
+    if (!silent) g.tips?.show('opportunity');
     g.progress?.discover(id);
   }
   track(id) {

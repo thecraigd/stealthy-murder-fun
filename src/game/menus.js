@@ -271,7 +271,7 @@ export class Menus {
         <div class="hcol"><h3>⌨ Keyboard &amp; Mouse</h3>
           <p><kbd>WASD</kbd> move • <kbd>Shift</kbd> run • <kbd>C</kbd> sneak</p>
           <p><kbd>E</kbd> action • <kbd>F</kbd> alt action</p>
-          <p><kbd>Space</kbd> use item (auto-aim) • <kbd>Click</kbd> use/throw at cursor</p>
+          <p><kbd>Space</kbd> use item (auto-aim) • <kbd>Click</kbd> use/throw at cursor • <kbd>T</kbd> throw</p>
           <p><kbd>1-9</kbd> / <kbd>Q</kbd> select item • <kbd>0</kbd> empty hands • <kbd>G</kbd> drop</p>
           <p><kbd>Tab</kbd>/<kbd>V</kbd> hold Sense • <kbd>Z</kbd>/<kbd>X</kbd> or right-drag rotate • wheel zoom</p>
           <p><kbd>M</kbd> big map • <kbd>Esc</kbd> pause</p>
@@ -345,6 +345,7 @@ export class Menus {
     const rp = this.btn('Reset all progress', 'danger small', () => {
       if (confirm('Erase all XP, unlocks and challenges?')) {
         app.progress.reset();
+        app.game.tips?.reset();
         b.innerHTML = '';
         this.settingsBody(b);
       }

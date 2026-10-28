@@ -142,6 +142,16 @@ kbd {
 .sense-overlay { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.25s; background: radial-gradient(circle, transparent 35%, rgba(40, 20, 90, 0.45)); mix-blend-mode: multiply; }
 .sense-overlay.on { opacity: 1; }
 
+.tipbox { position: absolute; left: calc(12px + var(--safe-l)); top: calc(150px + var(--safe-t)); max-width: min(320px, 46vw); }
+.tip {
+  display: flex; gap: 8px; align-items: flex-start; padding: 9px 12px; border-radius: 14px; background: #2a5a8a; border: 3px solid var(--ink);
+  box-shadow: 0 3px 0 var(--ink); font-size: 14px; line-height: 1.35; animation: tipin 0.35s ease; transition: opacity 0.5s;
+}
+.tip .tip-ic { font-size: 20px; }
+.tip.fade { opacity: 0; }
+@keyframes tipin { from { transform: translateX(-30px); opacity: 0; } }
+body.touch-mode .tipbox { top: auto; bottom: calc(120px + var(--safe-b)); left: calc(50% - min(160px, 23vw)); max-width: min(320px, 46vw); }
+
 /* world overlays */
 .world-layer, .pop-layer, .edge-layer { position: absolute; inset: 0; pointer-events: none; }
 .bubble {
@@ -232,6 +242,7 @@ body.touch-mode .item-desc { bottom: calc(76px + var(--safe-b)); }
 
 /* sniper */
 #ui.sniping .hud .objectives, #ui.sniping .hud .minimap { opacity: 0.4; }
+#ui.sniping .world-layer, #ui.sniping .edge-layer, #ui.sniping .hint, #ui.sniping .subtitles, #ui.sniping .tipbox, #ui.sniping .pop-layer { display: none; }
 #ui.sniping::before {
   content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1;
   background: radial-gradient(circle at 50% 50%, transparent 0, transparent min(34vmin, 300px), rgba(0,0,0,0.92) calc(min(34vmin, 300px) + 2px));
