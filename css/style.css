@@ -348,6 +348,7 @@ body.touch-mode .item-desc { bottom: calc(76px + var(--safe-b)); }
 .r-title.bad { color: var(--red); }
 .stars { font-size: 34px; color: var(--gold); text-shadow: 0 3px 0 var(--ink); letter-spacing: 4px; }
 .r-desc { opacity: 0.9; margin-top: 4px; }
+.r-tip { margin-top: 12px; padding: 8px 12px; border-radius: 12px; background: rgba(255,255,255,0.08); font-size: 0.92em; opacity: 0.9; }
 .ledger-note { text-align: center; margin: 10px 0; font-weight: 600; color: #9fffb8; }
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 10px; }
 .stats div { background: rgba(255,255,255,0.07); border-radius: 12px; padding: 7px; text-align: center; display: flex; flex-direction: column; }

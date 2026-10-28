@@ -81,6 +81,7 @@ export class Director {
     if (this.level === 'search') return { text: 'Search in progress', cls: 'warn' };
     if (g.npcs.some((n) => n.state === 'warn' && !n.inert)) return { text: 'Being told off', cls: 'warn' };
     if (p.flags.trespass) return { text: 'Trespassing', cls: 'warn' };
+    if (p.flags.blending) return { text: 'Blending in', cls: 'good' };
     if (this.level === 'suspicious') return { text: 'Suspicious', cls: 'warn' };
     return { text: 'Undetected', cls: 'good' };
   }

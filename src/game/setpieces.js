@@ -5,6 +5,7 @@ import { vtoon, outlineBasic, PAL, toonGradient, makeRoofMaterial, makeRoofOutli
 import { makeItemMesh, ITEMS } from './items.js';
 import { pick, dist, yawTo, angleDiff, clamp, damp, after } from '../core/util.js';
 import { WATER_Y } from './terrain.js';
+import { initBlend, updateBlendFx } from './blend.js';
 
 const PI = Math.PI;
 const B = (fn, o = 0.03) => buildProp(fn, vtoon(), outlineBasic(), { outline: o, castShadow: true, receiveShadow: true });
@@ -38,6 +39,8 @@ export class SetPieces {
     this.buildTelescope();
     this.buildPuffer();
     this.buildMisc();
+    this.blendSpots = initBlend(this.game);
+    this.updaters.push((dt) => updateBlendFx(this.game, dt));
   }
 
   get g() {
@@ -770,6 +773,8 @@ export class SetPieces {
       if (st.mode === 'rest') {
         st.y = damp(st.y, restY, 8, dt);
         if (brick && !brick.inert && brick.task?.id === 'bench' && brick.taskPhase === 'act' && !brick.scripted) {
+          // pins loosened mid-set: a few more reps and down it comes
+          if (g.story.has('rack_loose')) this.armBarbell(brick, 4);
           st.y = 0.95 + (Math.sin(brick.char.time * 2.4) * 0.5 + 0.5) * 0.45;
           bar.position.z = damp(bar.position.z, 10.0, 6, dt);
         } else bar.position.z = damp(bar.position.z, 9.85, 6, dt);
@@ -795,18 +800,26 @@ export class SetPieces {
   ev_brickBench(n) {
     const g = this.game;
     n.say('Time to lift! No spotter. Spotters are for wimps.', 2.5);
-    if (g.story.has('rack_loose')) {
-      after(8, () => {
-        if (n.inert || n.task?.id !== 'bench') return;
-        n.say('Ninety-eight… ninety-nine… ONE HUNDR—', 2);
-        g.slowmo(0.35, 1.2);
-        g.killCam(n, 2.0);
-        after(0.6, () => {
-          this.barbell.mode = 'falling';
-          this.barbell.v = -1;
-        });
+    if (g.story.has('rack_loose')) this.armBarbell(n, 8);
+  }
+  armBarbell(n, delay) {
+    const g = this.game;
+    const st = this.barbell;
+    if (st.armed || st.mode !== 'rest') return;
+    st.armed = true;
+    after(delay, () => {
+      if (n.inert || n.task?.id !== 'bench' || n.taskPhase !== 'act' || n.scripted) {
+        st.armed = false;
+        return;
+      }
+      n.say('Ninety-eight… ninety-nine… ONE HUNDR—', 2);
+      g.slowmo(0.35, 1.2);
+      g.killCam(n, 2.0);
+      after(0.6, () => {
+        st.mode = 'falling';
+        st.v = -1;
       });
-    }
+    });
   }
 
   // =============================================================== SAUNA

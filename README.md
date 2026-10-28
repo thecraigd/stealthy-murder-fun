@@ -27,6 +27,7 @@ You can also snipe any of them from the lighthouse (with a bullet-cam), use rat 
 ## Stealth toolkit
 
 - **Disguises**: knock someone out and take their clothes, or find spare uniforms. Each zone tells you who's allowed in. **Enforcers** (★ in Sense mode) recognise strangers in their own uniform.
+- **Blending in**: each disguise has 🎭 work spots: chop onions, polish glasses, stand guard, prune roses, or hit the dance floor. While you're doing the job, Enforcers don't look twice.
 - **Suspicion meters** fill above heads. Guards warn trespassers, then attack. Illegal acts like takedowns, dragging bodies, tampering, or holding weapons are seen instantly.
 - **Bodies**: drag them into dumpsters, closets, laundry baskets, bushes, the sea, or the shark tank. Bodies that get found raise the alarm. Bodies from "accidents" only cause gossip.
 - **Distractions and tools**: coins, banana peels, frying pans, frozen fish, baguettes, firecrackers, wrenches, crowbars, lockpicks, keycards, poisons (deathcap, pufferfish toxin, rat poison) and a pistol for emergencies.
@@ -36,7 +37,7 @@ You can also snipe any of them from the lighthouse (with a bullet-cam), use rat 
 
 ## Replayability
 
-- 37 challenges and a mastery XP track (saved in your browser).
+- 39 challenges and a mastery XP track (saved in your browser).
 - Mastery unlocks five more starting locations (kitchen, cargo yard, spa, security office, lighthouse) and extra starting items.
 - At the end of each run you get a rating, from *Clean Slate* (never seen, no bodies found, no innocents harmed) down to *Still a Thug*.
 

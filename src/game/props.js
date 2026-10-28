@@ -575,8 +575,9 @@ export function lampPost(L, x, z) {
 export function fountain(L, x, z, r = 2.2) {
   const s = L.env;
   s.push(x, 0, z);
-  s.cyl(0, 0, 0, r, 0.55, PAL.stone, { seg: 0 });
-  s.cyl(0, 0.5, 0, r + 0.12, 0.08, PAL.marble);
+  s.cyl(0, 0, 0, r - 0.15, 0.3, PAL.stone, { outline: false });
+  s.ring(0, 0, 0, r - 0.12, 0.3, 0.5, 14, PAL.stone);
+  s.ring(0, 0.5, 0, r - 0.1, 0.42, 0.08, 14, PAL.marble, { outline: false });
   s.cyl(0, 0.0, 0, 0.35, 1.2, PAL.marble);
   s.cyl(0, 1.2, 0, 0.9, 0.15, PAL.marble);
   s.cyl(0, 1.35, 0, 0.2, 0.6, PAL.marble);

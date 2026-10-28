@@ -40,6 +40,7 @@ export class Player {
     this.alive = true;
     this.disguiseLog = new Set(['rook']);
     this.perched = false;
+    this.blend = null;
     game.scene.add(this.group);
     this.group.position.set(x, 0, z);
     this.group.rotation.y = yaw;
@@ -101,6 +102,7 @@ export class Player {
 
   // ---------------------------------------------------------------- outfit
   setOutfit(id) {
+    this.blend = null;
     this.outfit = id;
     const o = OUTFITS[id];
     this.char.setOutfit(o);
@@ -127,11 +129,12 @@ export class Player {
   }
 
   startBusy(b) {
+    this.blend = null;
     this.busy = { t: 0, ...b };
     if (b.face) this.yaw = yawTo(this.pos.x, this.pos.z, b.face.x, b.face.z);
   }
 
-  hurt(dmg, from) {
+  hurt(dmg, from, how = 'shot') {
     if (!this.alive || this.game.godMode) return;
     this.hp -= dmg;
     this.lastHurt = this.game.time;
@@ -142,7 +145,7 @@ export class Player {
     if (this.hp <= 0) {
       this.hp = 0;
       this.alive = false;
-      this.game.playerDied(from);
+      this.game.playerDied(from, how);
     }
   }
 
@@ -156,6 +159,7 @@ export class Player {
     // regen
     if (g.time - this.lastHurt > 6 && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + 12 * dt);
 
+    if (this.hidden || this.perched) this.blend = null;
     if (this.hidden) {
       this.group.visible = false;
       this.vel.x = this.vel.z = 0;
@@ -179,6 +183,18 @@ export class Player {
         if (b.onDone) b.onDone();
       }
       this.speed = 0;
+    } else if (this.blend && (Math.hypot(input.move.x, input.move.y) > 0.25 || this.drag || this.isCompromised)) {
+      this.blend = null;
+    } else if (this.blend) {
+      // Doing the job: settle onto the spot and look busy.
+      const b = this.blend;
+      this.pos.x = damp(this.pos.x, b.x, 8, dt);
+      this.pos.z = damp(this.pos.z, b.z, 8, dt);
+      this.yaw = dampAngle(this.yaw, b.yaw, 8, dt);
+      this.vel.x = this.vel.z = 0;
+      this.speed = 0;
+      this.running = false;
+      state = b.anim;
     } else if (!this.perched) {
       // Movement
       const cam = g.cam;
@@ -246,7 +262,7 @@ export class Player {
 
     // Held item visual.
     const sel = this.selected;
-    const wantHeld = this.drag || this.busy?.hideHeld ? null : sel ? sel.id : null;
+    const wantHeld = this.drag || this.blend || this.busy?.hideHeld ? null : sel ? sel.id : null;
     if (wantHeld !== this.heldId) {
       this.heldId = wantHeld;
       this.char.hold('R', wantHeld && wantHeld !== 'coin' ? makeHeldMesh(wantHeld) : null);
@@ -270,6 +286,7 @@ export class Player {
     if (this.busy && this.busy.illegal) f.illegal = this.busy.illegalReason || 'act';
     else if (this.drag) f.illegal = 'drag';
     else if (sel && ITEMS[sel.id].illegal && !(ITEMS[sel.id].type === 'gun' && this.outfit === 'guard')) f.illegal = 'weapon';
+    f.blending = !!this.blend && !this.busy;
     f.running = this.running && this.speed > 3;
     f.sneaking = this.sneak && this.speed > 0.2;
     f.speed = this.speed;

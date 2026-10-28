@@ -147,7 +147,7 @@ export class UI {
     el.classList.remove('fade');
     el._t = dur;
     el._npc = npc;
-    if (opts.subtitle || opts.important) this.subtitle(npc.name, text, dur);
+    if (opts.subtitle || opts.important) this.subtitle(npc.name, text, dur, npc);
   }
   clearSpeech(npc) {
     const el = this.speechEls.get(npc);
@@ -155,9 +155,12 @@ export class UI {
       el.remove();
       this.speechEls.delete(npc);
     }
+    // dead men tell no toasts
+    for (const s of [...this.subtitles.children]) if (s._npc === npc) s.remove();
   }
-  subtitle(who, text, dur = 3) {
+  subtitle(who, text, dur = 3, npc = null) {
     const el = h('div', 'sub', `<b>${who}:</b> ${text}`);
+    el._npc = npc;
     this.subtitles.appendChild(el);
     while (this.subtitles.children.length > 3) this.subtitles.firstChild.remove();
     setTimeout(() => {

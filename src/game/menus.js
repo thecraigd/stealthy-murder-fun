@@ -6,7 +6,18 @@ import { OPPS } from './story.js';
 import { CHALLENGES, MASTERY } from './challenges.js';
 import { START_LOCATIONS, LOADOUT_ITEMS } from './game.js';
 import { ITEMS } from './items.js';
-import { formatTime } from '../core/util.js';
+import { formatTime, pick } from '../core/util.js';
+
+const FAIL_TIPS = [
+  'Tip: guards take a moment to aim. Break line of sight, then hide or change disguise and the search dies down.',
+  'Tip: crouch behind hedges and counters. Low cover hides you from anyone who isn\u2019t standing right over you.',
+  'Tip: hold Sense (Tab / 👁) to see who is a guard, and who will see through your disguise.',
+  'Tip: a thrown coin pulls one curious guard away from their post.',
+  'Tip: listen in on gossip. Every target has an \u201caccident\u201d waiting to happen.',
+  'Tip: drag bodies into dumpsters, closets or the sea. Found bodies put the whole island on edge.',
+  'Tip: Brick hits hard. Lead him somewhere he can\u2019t follow, or knock him out from behind.',
+  'Tip: running is loud. Walk when people are watching.',
+];
 
 const h = (tag, cls, html) => {
   const e = document.createElement(tag);
@@ -407,7 +418,7 @@ export class Menus {
   failed(info) {
     const app = this.app;
     const p = this.panel('failed');
-    p.innerHTML = `<div class="rating"><div class="r-label">MISSION FAILED</div><div class="r-title bad">You Got Got</div><div class="r-desc">${info.reason || ''} Old habits, old enemies. Try a quieter approach.</div></div>`;
+    p.innerHTML = `<div class="rating"><div class="r-label">MISSION FAILED</div><div class="r-title bad">You Got Got</div><div class="r-desc">${info.reason || ''} Old habits, old enemies.</div><div class="r-tip">${pick(FAIL_TIPS)}</div></div>`;
     const row = h('div', 'btn-row');
     row.append(this.btn('↻ Try Again', 'big go', () => app.restart()), this.btn('Title', '', () => app.quit()));
     p.appendChild(row);

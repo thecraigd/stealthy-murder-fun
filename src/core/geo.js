@@ -172,6 +172,15 @@ export class MeshSink {
     const src = opts.seg === 4 ? UNIT.cone4 : opts.seg === 8 ? UNIT.cone8 : UNIT.cone;
     return this.prim(src, x, y + h / 2, z, r * 2, h, r * 2, color, opts);
   }
+  // A ring of n blocks (basin rims, tubs) centred on radius r, bottom at y.
+  ring(x, y, z, r, t, h, n, color, opts = {}) {
+    const len = 2 * (r + t / 2) * Math.tan(Math.PI / n) + 0.02;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      this.prim(UNIT.box, x + Math.sin(a) * r, y + h / 2, z + Math.cos(a) * r, len, h, t, color, { ...opts, ry: a });
+    }
+    return this;
+  }
   plane(x, y, z, w, d, color, opts = {}) {
     return this.prim(UNIT.plane, x, y, z, w, 1, d, color, { outline: false, ...opts });
   }

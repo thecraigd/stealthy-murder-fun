@@ -381,10 +381,10 @@ export class NPC {
     } else if (f.trespass && this.caresAbout(zone)) {
       kind = 'trespass';
       rate = (0.62 * vis + 0.14) * heightened;
-    } else if (this.def.enforcer && p.outfit === this.outfit && d < 5.5) {
+    } else if (this.def.enforcer && p.outfit === this.outfit && d < 5.5 && !f.blending) {
       kind = 'enforcer';
       rate = 0.42 * vis + 0.05;
-    } else if (this.isGuard && d < 7 && (f.running || (f.sneaking && d < 4.5))) {
+    } else if (this.isGuard && d < 7 && !f.blending && (f.running || (f.sneaking && d < 4.5))) {
       kind = 'odd';
       rate = 0.22 * vis;
     }
@@ -893,7 +893,7 @@ export class NPC {
         if (brawler && Math.random() < 0.5) this.say(pick(['BRICK SMASH!', 'Come here, little man!', 'HYAAA!', 'Nobody touches Brick\u2019s friends!']), 1.2);
         after(0.18, () => {
           if (!this.inert && this.distTo(p.pos) < 1.7 && !p.hidden) {
-            p.hurt(brawler ? 26 : 16, this);
+            p.hurt(brawler ? 26 : 16, this, 'punch');
             g.audio.sfx('punch', p.pos);
             g.fx.pop(p.pos.x, 1.6, p.pos.z, brawler ? 'KA-POW!' : 'POW!', '#ff5a3a');
             if (brawler) g.cam.shake(0.3, 0.25);
@@ -936,7 +936,7 @@ export class NPC {
       g.interactions.leaveHiding();
       g.fx.pop(hs.x, 1.8, hs.z, 'YOINK!', '#ffb02e');
       g.cam.shake(0.2, 0.2);
-      p.hurt(10, this);
+      p.hurt(10, this, 'punch');
       s.checkHide = null;
       s.lostT = 0;
       return 'idle';
@@ -967,7 +967,7 @@ export class NPC {
     g.audio.sfx('gunshot', this.pos);
     g.emitNoise(this.pos.x, this.pos.z, 26, 'gunshot', this);
     if (hit) {
-      after(0.06, () => p.hurt(22, this));
+      after(0.06, () => p.hurt(22, this, 'shot'));
     }
   }
 

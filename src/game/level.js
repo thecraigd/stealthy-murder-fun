@@ -529,8 +529,10 @@ export class Level {
     this.buildings.spa = { minX: 28, maxX: 42, minZ: -28, maxZ: -16 };
     // hot tub
     const s = this.env;
-    s.cyl(31.5, 0, -24.2, 1.9, 0.75, 0xb89878);
-    s.cyl(31.5, 0.72, -24.2, 2.0, 0.08, 0xd8c0a0);
+    s.cyl(31.5, 0, -24.2, 1.75, 0.35, 0x8a6a50, { outline: false });
+    s.ring(31.5, 0, -24.2, 1.78, 0.3, 0.72, 12, 0xb89878);
+    s.ring(31.5, 0.72, -24.2, 1.78, 0.42, 0.08, 12, 0xd8c0a0, { outline: false });
+    s.ring(31.5, 0, -24.2, 1.45, 0.3, 0.42, 12, 0xa88868, { outline: false });
     this.world.addCircle(31.5, -24.2, 1.95, { h: 0.8, sight: 'none', tag: 'hottub' });
     this.waterDiscs.push({ x: 31.5, z: -24.2, r: 1.75, y: 0.62, mat: makePoolWaterMaterial(0x7fe8f0) });
     this.A('hottub', 31.5, -24.2, Math.PI * 0.75, { y: 0.2 });
@@ -758,7 +760,7 @@ export class Level {
     this.A('egarden_bench', 10.5, 18.2, Math.PI, { sit: true });
     this.A('egarden_bench2', 17.6, 18.4, Math.PI, { sit: true });
     this.A('rose_view', 9.2, 10.6, Math.PI);
-    for (const [x, z] of [[6.5, 22.5], [24.5, 8], [-1, 24], [5, 24.5], [12.5, 23.6]]) P.tree(L, x, z, 'round', 0.9 + (x % 3) * 0.08);
+    for (const [x, z] of [[6.5, 22.5], [24.5, 8], [-1, 24], [5, 24.5]]) P.tree(L, x, z, 'round', 0.9 + (x % 3) * 0.08);
     for (const [x, z, c] of [[7, 3.4, PAL.flowerYellow], [9.4, 3.2, null], [-6, 3.4, PAL.flowerPink], [-9, 3.2, null], [12, 3.3, PAL.flowerWhite]]) P.bush(L, x, z, 0.9, c);
     this.hideSpots.push({ id: 'bush_front', name: 'Bush', x: 9.4, z: 4.1, yaw: 0, kind: 'bush' });
     this.containers.push({ id: 'bush_front_c', name: 'Bush', x: 9.4, z: 4.2, cap: 1, yaw: 0, bush: true, bx: 9.4, bz: 3.2 });

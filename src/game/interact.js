@@ -185,7 +185,10 @@ export class Interactions {
     for (const w of g.level.windows) {
       consider(w.x, w.z, 1.3, 0.3, { primary: { label: 'Climb through window', icon: '🪟', run: () => this.climb(w) } });
     }
-    if (!cands.length) return out;
+    if (!cands.length) {
+      if (p.blend) out.primary = { label: 'Stop blending in', icon: '🚶', run: () => (p.blend = null) };
+      return out;
+    }
     cands.sort((a, b) => a.s - b.s);
     const c = cands[0];
     out.primary = c.primary;

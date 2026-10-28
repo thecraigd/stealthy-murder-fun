@@ -31,6 +31,8 @@ export const CHALLENGES = [
   { id: 'f_hide', cat: 'Feats', name: 'Tidy Up', desc: 'Hide 3 bodies in containers in one run.', xp: 150, icon: '📦' },
   { id: 'f_disguises', cat: 'Feats', name: 'Wardrobe Malfunction', desc: 'Wear 5 different disguises in one run.', xp: 200, icon: '👔' },
   { id: 'f_telescope', cat: 'Feats', name: 'Sightseer', desc: 'Look through the terrace telescope.', xp: 50, icon: '🔭' },
+  { id: 'f_blend', cat: 'Feats', name: 'Method Actor', desc: 'Blend in with 3 different disguises in one run.', xp: 200, icon: '🎭' },
+  { id: 'f_dance', cat: 'Feats', name: 'Bust a Move', desc: 'Hit a dance floor.', xp: 50, icon: '💃' },
   { id: 'f_party', cat: 'Feats', name: 'Party Animal', desc: 'Crank the DJ’s volume.', xp: 50, icon: '🎉' },
   { id: 'f_allopps', cat: 'Feats', name: 'All Ears', desc: 'Discover every opportunity (across runs).', xp: 300, icon: '👂' },
   // --- Classics (end of run)
@@ -107,7 +109,7 @@ export class Challenges {
   }
   beginRun(game) {
     this.game = game;
-    this.run = { completed: [], xp: 0, hidden: 0, disguises: new Set(), kills: {} };
+    this.run = { completed: [], xp: 0, hidden: 0, disguises: new Set(), blends: new Set(), kills: {} };
     this.progress.data.runs++;
     this.progress.save();
   }
@@ -146,6 +148,11 @@ export class Challenges {
         this.run.kills[d.npc.id] = { method: m, accident: !!d.cause?.accident };
         break;
       }
+      case 'blend':
+        this.run.blends.add(d.outfit);
+        if (this.run.blends.size >= 3) this.complete('f_blend');
+        if (d.anim === 'dance') this.complete('f_dance');
+        break;
       case 'slip':
         this.complete('f_banana');
         break;

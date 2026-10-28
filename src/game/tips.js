@@ -11,7 +11,9 @@ const TIPS = {
   opportunity: { icon: '💡', touch: 'Opportunity found! Follow the yellow marker. Manage them from the pause menu.', kbm: 'Opportunity found! Follow the yellow marker. Manage them from the pause menu (Esc).' },
   item: { icon: '🪙', touch: 'Tap the item button to use it. Drag from it to aim a throw — coins distract, heavy things knock people out.', kbm: 'Space uses your item, click throws at the cursor, T throws. Coins distract; heavy things bonk.' },
   frisk: { icon: '✋', touch: 'Front-door guards frisk guests. Weapons, crowbars and shovels will get you caught — stash them or find another way in.', kbm: 'Front-door guards frisk guests. Illegal items will get you caught — stash them (G) or find another way in.' },
-  enforcer: { icon: '★', touch: 'Careful: some people (★ in Sense) know everyone in their uniform. Keep your distance from them.', kbm: 'Careful: some people (★ in Sense) know everyone in their uniform. Keep your distance from them.' },
+  enforcer: { icon: '★', touch: 'Careful: some people (★ in Sense) know everyone in their uniform. Keep your distance, or blend in at a 🎭 work spot.', kbm: 'Careful: some people (★ in Sense) know everyone in their uniform. Keep your distance, or blend in at a 🎭 work spot.' },
+  blend: { icon: '🎭', touch: 'Blending in! While you do the job, people who know your uniform won’t look twice. Move to stop.', kbm: 'Blending in! While you do the job, people who know your uniform won’t look twice. Move to stop.' },
+  blendSpot: { icon: '🎭', touch: 'A 🎭 work spot for your disguise. Blend in here to dodge suspicious colleagues.', kbm: 'A 🎭 work spot for your disguise. Blend in here to dodge suspicious colleagues.' },
   disguise: { icon: '👔', touch: 'New disguise! The zone banner tells you where you’re allowed. Fellow staff may look twice.', kbm: 'New disguise! The zone banner tells you where you’re allowed. Fellow staff may look twice.' },
 };
 
@@ -46,6 +48,7 @@ export class Tips {
       const c = g.interactions.current;
       if (c.target && !c.target.inert && /Subdue/.test(c.primary?.label || '') && c.primary.label === 'Subdue') this.show('behind');
       if (p.inv.length > 1 && g.time > 25) this.show('item');
+      if (/^Blend in/.test(c.primary?.label || '')) this.show('blendSpot');
     }
     if (this.cool > 0 || !this.queue.length) return;
     const id = this.queue.shift();

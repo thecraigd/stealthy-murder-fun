@@ -861,14 +861,22 @@ export class Game extends Emitter {
     this.last = performance.now();
     this.audio.duck(false);
   }
-  playerDied(from) {
+  playerDied(from, how) {
+    const p = this.player;
     this.audio.stinger('death');
     this.cam.shake(0.4, 0.4);
-    this.player.char.setFace('ko');
+    p.char.setFace('ko');
+    if (p.drag) this.interactions.dropBody();
+    this.slowmo(0.25, 1.4);
+    const yaw = this.cam.yaw;
+    this.cam.cinematic(new THREE.Vector3(p.pos.x + Math.sin(yaw) * 3.5, 2.6, p.pos.z + Math.cos(yaw) * 3.5), new THREE.Vector3(p.pos.x, 0.5, p.pos.z), 2.4);
+    this.ui.bigText('GOT GOT', '', 'kill');
+    const who = from?.name || 'Someone';
+    const reason = !from ? 'You went down.' : from.def?.brawler ? `${who} flattened you.` : how === 'punch' ? `${who} knocked your lights out.` : `${who} shot you.`;
     after(2.2, () => {
       this.ended = true;
       this.paused = true;
-      this.emit('failed', { reason: 'You got got.' });
+      this.emit('failed', { reason });
     });
   }
   missionComplete(kind, mesh) {
