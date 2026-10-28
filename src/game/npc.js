@@ -233,7 +233,12 @@ export class NPC {
           this._stuckCount = (this._stuckCount || 0) + 1;
           if (this._stuckCount > 4) {
             this._stuckCount = 0;
-            if (this.pathIdx < (this.path?.length || 0) - 1) this.pathIdx++;
+            const wp = this.path?.[this.pathIdx];
+            if (wp && !this.game.isOnScreen(this.pos, 3) && !this.game.isOnScreen(wp, 3)) {
+              // Nobody's watching: quietly hop past whatever is blocking us.
+              this.pos.x = wp.x;
+              this.pos.z = wp.z;
+            } else if (this.pathIdx < (this.path?.length || 0) - 1) this.pathIdx++;
           }
         }
       } else this._stuckCount = 0;
