@@ -318,6 +318,13 @@ export class Input {
 
   // Called each frame before the game reads input.
   poll() {
+    if (this.override) {
+      // test/automation hook
+      this.move.x = this.override.x;
+      this.move.y = this.override.y;
+      this.run = !!this.override.run;
+      return;
+    }
     let x = 0, y = 0;
     const k = this.keys;
     if (k.has('KeyW') || k.has('ArrowUp')) y += 1;

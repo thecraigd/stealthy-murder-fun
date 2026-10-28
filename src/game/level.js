@@ -186,7 +186,7 @@ export class Level {
     const ext = { t: ET, base: 0xd8c8a8 };
     W(-22, -26, -12, -26, { ...ext, a: EXT, b: C.study, windows: [[-17, 1.6]] });
     W(-12, -26, -2, -26, { ...ext, a: EXT, b: C.aquarium });
-    W(-2, -26, 14, -26, { ...ext, a: EXT, b: C.ballroom, doors: [[6, 3.0]], windows: [[1, 1.8], [11, 1.8]] });
+    W(-2, -26, 14, -26, { ...ext, a: EXT, b: C.ballroom, doors: [[9.5, 2.6]], windows: [[3, 1.8]] });
     W(14, -26, 22, -26, { ...ext, a: EXT, b: C.kitchen, windows: [[18, 1.6]] });
     W(-22, 0, -12, 0, { ...ext, a: C.lounge, b: EXT, windows: [[-19, 1.6], [-15, 1.6]] });
     W(-12, 0, -2, 0, { ...ext, a: C.gallery, b: EXT, windows: [[-9, 1.8], [-5, 1.8]] });
@@ -279,12 +279,12 @@ export class Level {
     P.barrel(L, -11.4, -25.3, 0x3f7fa8);
 
     // ---- Ballroom
-    P.stage(L, 0, -26, 11, -23.2);
-    this.world.addBox(0, -26, 11, -23.2, { h: 0.35, sight: 'none', tag: 'stage' });
-    P.piano(L, 1.8, -24.4, Math.PI * 0.5);
-    P.mic(L, 6, -23.4);
-    this.A('pianist', 3.15, -24.4, -Math.PI / 2, { y: 0.35, sit: true });
-    this.A('singer', 6, -24.0, 0, { y: 0.35 });
+    P.stage(L, -1.6, -26, 7.4, -23.2);
+    this.world.addBox(-1.6, -26, 7.4, -23.2, { h: 0.35, sight: 'none', tag: 'stage' });
+    P.piano(L, 0.2, -24.4, Math.PI * 0.5);
+    P.mic(L, 4.6, -23.4);
+    this.A('pianist', 1.55, -24.4, -Math.PI / 2, { y: 0.35, sit: true });
+    this.A('singer', 4.6, -24.0, 0, { y: 0.35 });
     this.A('chandelier', 5.5, -15.5, 0);
     this.A('toast', 5.5, -15.5, 0);
     // bar
@@ -316,8 +316,7 @@ export class Level {
     });
     P.champagneTower(L, 7.4, -9.4);
     P.buffet(L, 10.4, -8.8, Math.PI, 2.8);
-    P.plantPot(L, -1.3, -25.3, 1.2, 'palm');
-    P.plantPot(L, 10.6, -25.3, 1.0, 'palm');
+    P.plantPot(L, 7.9, -25.4, 1.0, 'palm');
     P.plantPot(L, -1.3, -8.7, 1.0, 'palm');
     P.plantPot(L, 13.3, -8.7, 1.0, 'palm');
     P.painting(L, -1.86, -20.5, Math.PI / 2, 1.4, 1.0, 1.7);
@@ -500,7 +499,7 @@ export class Level {
     this.A('terrace_table3', 1, -28.4, Math.PI);
     this.A('terrace_view1', 4, -32.7, Math.PI);
     this.A('terrace_view2', -2, -32.7, Math.PI);
-    this.A('terrace_door', 6, -27.0, Math.PI);
+    this.A('terrace_door', 9.5, -27.2, Math.PI);
     for (const x of [-20, -10, 0, 12, 20]) P.plantPot(L, x, -26.6, 1.0, x % 20 === 0 ? 'palm' : 'flower');
     // telescope
     const s = this.env;

@@ -298,6 +298,16 @@ export class World {
   buildNav(agentR = 0.32) {
     this.agentR = agentR;
     this.updateNavRegion(this.minX, this.minZ, this.maxX, this.maxZ);
+    // Path cost per cell: non-public zones are "expensive" so people prefer
+    // public routes and only cut through private rooms when they must.
+    this.cost = new Float32Array(this.gw * this.gh);
+    for (let gz = 0; gz < this.gh; gz++) {
+      for (let gx = 0; gx < this.gw; gx++) {
+        const x = this.minX + (gx + 0.5) * this.cell, z = this.minZ + (gz + 0.5) * this.cell;
+        const zn = this.zoneAt(x, z);
+        this.cost[gz * this.gw + gx] = zn && zn.access !== 'public' ? 3 : 1;
+      }
+    }
   }
   updateNavRegion(minX, minZ, maxX, maxZ) {
     const r = this.agentR;
@@ -445,7 +455,7 @@ export class World {
         const ni = nz * W + nx;
         if (!this.walk[ni] || closed[ni] === gen) continue;
         if (k >= 4 && (!this.walk[cz * W + nx] || !this.walk[nz * W + cx])) continue;
-        const ng = g[cur] + DC[k];
+        const ng = g[cur] + DC[k] * (this.cost ? this.cost[ni] : 1);
         if (seen[ni] !== gen || ng < g[ni]) {
           seen[ni] = gen; g[ni] = ng; from[ni] = cur;
           push(ng + h(ni) * 1.001, ni);
