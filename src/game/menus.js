@@ -289,6 +289,7 @@ export class Menus {
         </div>
         <div class="hcol wide"><h3>🧽 How to be a ghost</h3>
           <p><b>Disguises</b> get you into places. Each zone shows who’s allowed when you enter. Guards and <b>enforcers</b> (🟧 in Sense) look closely at people wearing <i>their</i> uniform.</p>
+          <p><b>Blend in</b> at 🎭 work spots for your disguise (Sense shows them): chop onions, polish glasses, stand guard, dance. While you work, nobody looks twice. Move to stop.</p>
           <p><b>Suspicion meters</b> fill above heads when someone sees something odd. White “?” = curious, red = alarm. Break line of sight and they calm down.</p>
           <p><b>Illegal acts</b> (takedowns, dragging bodies, holding weapons, tampering) are seen instantly. Do them where nobody is looking.</p>
           <p><b>Bodies</b> get found. Drag them into containers, bushes, the sea, or… the shark tank.</p>
@@ -408,11 +409,28 @@ export class Menus {
       }
       p.appendChild(grid);
     }
-    const pr = app.progress;
-    p.appendChild(h('div', 'mastery-mini', `<div>Mastery <b>${pr.level}</b></div><div class="mbar"><div style="width:${pr.levelProgress() * 100}%"></div></div><div class="xp">${pr.xp} XP</div>`));
+    const unl = this.masteryBlock(p);
+    if (unl) p.querySelector('.ledger-note').after(unl);
     const row = h('div', 'btn-row');
     row.append(this.btn('↻ Play Again', 'big go', () => app.restart(true)), this.btn('Title', '', () => app.quit()));
     p.appendChild(row);
+  }
+
+  // Mastery bar plus anything this run unlocked.
+  masteryBlock(p) {
+    const pr = this.app.progress;
+    const run = this.app.game.challenges.run;
+    p.appendChild(h('div', 'mastery-mini', `<div>Mastery <b>${pr.level}</b></div><div class="mbar"><div style="width:${pr.levelProgress() * 100}%"></div></div><div class="xp">${pr.xp} XP</div>`));
+    const from = run?.startLevel ?? pr.level;
+    if (pr.level <= from) return null;
+    const fresh = (m) => m > from && m <= pr.level;
+    const items = [
+      ...Object.values(START_LOCATIONS).filter((s) => fresh(s.mastery)).map((s) => `📍 ${s.name}`),
+      ...Object.values(LOADOUT_ITEMS).filter((it) => it.id && fresh(it.mastery)).map((it) => `${ITEMS[it.id].icon} ${ITEMS[it.id].name}`),
+    ];
+    const el = h('div', 'unlocks', `<div class="ul-title">⬆ Mastery ${pr.level}!${items.length ? ' Unlocked:' : ''}</div>${items.map((t) => `<span class="chip">${t}</span>`).join('')}`);
+    p.appendChild(el);
+    return el;
   }
 
   failed(info) {
@@ -420,6 +438,10 @@ export class Menus {
     const p = this.panel('failed');
     p.innerHTML = `<div class="rating"><div class="r-label">MISSION FAILED</div><div class="r-title bad">You Got Got</div><div class="r-desc">${info.reason || ''} Old habits, old enemies.</div><div class="r-tip">${pick(FAIL_TIPS)}</div></div>`;
     const row = h('div', 'btn-row');
+    if (app.game.challenges.run?.completed.length) {
+      const unl = this.masteryBlock(p);
+      if (unl) p.querySelector('.rating').after(unl);
+    }
     row.append(this.btn('↻ Try Again', 'big go', () => app.restart()), this.btn('Title', '', () => app.quit()));
     p.appendChild(row);
   }

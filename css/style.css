@@ -348,6 +348,9 @@ body.touch-mode .item-desc { bottom: calc(76px + var(--safe-b)); }
 .r-title.bad { color: var(--red); }
 .stars { font-size: 34px; color: var(--gold); text-shadow: 0 3px 0 var(--ink); letter-spacing: 4px; }
 .r-desc { opacity: 0.9; margin-top: 4px; }
+.unlocks { margin: 10px 0 4px; padding: 10px 12px; border-radius: 14px; background: rgba(255, 214, 74, 0.14); border: 2px solid rgba(255, 214, 74, 0.5); text-align: center; }
+.unlocks .ul-title { font: 20px var(--comic); color: var(--gold); margin-bottom: 6px; letter-spacing: 1px; }
+.unlocks .chip { display: inline-block; margin: 3px; cursor: default; }
 .r-tip { margin-top: 12px; padding: 8px 12px; border-radius: 12px; background: rgba(255,255,255,0.08); font-size: 0.92em; opacity: 0.9; }
 .ledger-note { text-align: center; margin: 10px 0; font-weight: 600; color: #9fffb8; }
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 10px; }

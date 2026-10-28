@@ -109,7 +109,7 @@ export class Challenges {
   }
   beginRun(game) {
     this.game = game;
-    this.run = { completed: [], xp: 0, hidden: 0, disguises: new Set(), blends: new Set(), kills: {} };
+    this.run = { completed: [], xp: 0, hidden: 0, disguises: new Set(), blends: new Set(), kills: {}, startLevel: this.progress.level };
     this.progress.data.runs++;
     this.progress.save();
   }
