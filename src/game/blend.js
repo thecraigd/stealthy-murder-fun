@@ -1,8 +1,23 @@
 // Blend-in spots: do a job that suits your disguise and the people who know
 // that uniform (Enforcers) stop looking twice. Moving or acting ends it.
-import { dist } from '../core/util.js';
+import { dist, pick } from '../core/util.js';
 
 const PI = Math.PI;
+
+// What colleagues say when they notice you hard at work.
+const REMARKS = {
+  cook: ['Finer! Chop them FINER!', 'Hm. Not bad. Don\u2019t let it go to your head.', 'Who taught you to hold a knife? Good. Keep going.'],
+  work: ['Missed a spot.', 'Look at you, working hard.', 'Good. Keep at it.'],
+  serve: ['Canap\u00e9s at a forty-five degree angle, please.', 'Smile! They tip better.'],
+  guard: ['Eyes front.', 'Quiet night, eh?', 'Stand up straight, rookie.'],
+  lookaround: ['See anything out there?', 'Nothing but seagulls.'],
+  type: ['Anything on camera four?', 'Don\u2019t spill coffee on the keyboard again.'],
+  kneel: ['Mind the thorns.', 'Those roses have never looked better.'],
+  sweep: ['Don\u2019t forget behind the books.'],
+  mop: ['Mr. Nibbles likes a clean window.'],
+  pushups: ['TEN MORE! TEN MORE!', 'Feel the burn!', 'Brick does a hundred of those before breakfast.'],
+  dance: ['Nice moves!', 'Woo! Get it!', 'Who IS that? They\u2019re amazing!', 'Ooh, shake it!'],
+};
 
 // [x, z, yaw, outfits, label, anim, fx]
 export const BLEND_SPOTS = [
@@ -75,6 +90,25 @@ export function updateBlendFx(g, dt) {
   if (!s) return;
   p.blendT = (p.blendT || 0) + dt;
   if (dist(p.pos.x, p.pos.z, s.x, s.z) > 0.6) return;
+  // Now and then someone nearby appreciates the effort.
+  p._remarkT = (p._remarkT ?? 3) - dt;
+  if (p._remarkT <= 0) {
+    p._remarkT = 9 + Math.random() * 6;
+    const dance = s.anim === 'dance';
+    let best = null, bd = 6;
+    for (const n of g.npcs) {
+      if (n.inert || n.gone || n.scripted || n.state !== 'routine' || n.speech) continue;
+      if (dance ? n.role !== 'guest' : !s.outfits.includes(n.outfit)) continue;
+      const d = n.distTo(p.pos);
+      if (d < bd) { bd = d; best = n; }
+    }
+    if (best && REMARKS[s.anim]) {
+      best.say(pick(REMARKS[s.anim]), 2.6);
+      best.lookAt = { x: p.pos.x, z: p.pos.z };
+      best.lookT = 2.5;
+      if (dance) best.char.play('cheer', 1.2);
+    }
+  }
   p._blendFx = (p._blendFx || 0) - dt;
   if (p._blendFx > 0 || !s.fx) return;
   p._blendFx = 0.7 + Math.random() * 0.5;

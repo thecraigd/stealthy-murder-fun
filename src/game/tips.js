@@ -31,6 +31,12 @@ export class Tips {
   }
   show(id) {
     if (this.seen[id] || !TIPS[id] || this.queue.includes(id)) return;
+    // already blending: no need to point out the spot
+    if (id === 'blend') {
+      this.queue = this.queue.filter((q) => q !== 'blendSpot');
+      this.seen.blendSpot = true;
+    }
+    if (id === 'blendSpot' && this.game.player.blend) return;
     this.queue.push(id);
   }
   update(dt) {
