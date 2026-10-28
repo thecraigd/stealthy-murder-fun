@@ -37,7 +37,7 @@ You can also snipe any of them from the lighthouse (with a bullet-cam), use rat 
 
 ## Replayability
 
-- 39 challenges and a mastery XP track (saved in your browser).
+- 40 challenges and a mastery XP track (saved in your browser).
 - Mastery unlocks five more starting locations (kitchen, cargo yard, spa, security office, lighthouse) and extra starting items.
 - At the end of each run you get a rating, from *Clean Slate* (never seen, no bodies found, no innocents harmed) down to *Still a Thug*.
 
