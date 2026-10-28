@@ -226,7 +226,10 @@ export class Player {
           this.footT = 0.36;
           const surf = this.zone()?.outdoor ? 'grass' : 'floor';
           if (!this.sneak) g.audio.sfx(this.running ? 'stepRun' : 'step', this.pos, { surf });
-          if (this.running) g.emitNoise(this.pos.x, this.pos.z, 5.5, 'footsteps', this);
+          if (this.running) {
+            g.emitNoise(this.pos.x, this.pos.z, 5.5, 'footsteps', this);
+            g.fx.groundRing(this.pos.x, this.pos.z, 5.5, 0xfff1c0, 0.5);
+          }
         }
       }
     }

@@ -325,6 +325,10 @@ export class AudioEngine {
       case 'airhorn':
         for (let i = 0; i < 3; i++) for (const f of [466, 554, 698]) this.tone(f, 0.22, { type: 'sawtooth', vol: 0.06 * v, at: i * 0.28, filter: 2500, ...P });
         break;
+      case 'gull':
+        for (let i = 0; i < 3; i++) this.tone(1500 + Math.random() * 300, 0.16, { type: 'triangle', vol: 0.06 * v, slide: 1000, at: i * 0.17, ...P });
+        this.noise(0.3, { vol: 0.05 * v, freq: 3000, q: 0.8, ...P });
+        break;
       case 'slash':
         this.noise(0.15, { vol: 0.25 * v, freq: 4000, q: 2, sweep: 1500, ...P });
         break;

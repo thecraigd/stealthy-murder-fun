@@ -470,8 +470,19 @@ export class UI {
       }
     }
 
-    // speech bubbles
+    // speech bubbles (only the few nearest stay visible, keeps crowds readable)
+    const bubbleRank = [...this.speechEls.keys()].filter((n) => !n.inert).sort((a, b) => a.distTo(p.pos) - b.distTo(p.pos));
+    const keep = new Set(bubbleRank.slice(0, 4));
     for (const [npc, el] of this.speechEls) {
+      if (!keep.has(npc) && !el.classList.contains('important')) {
+        el.style.display = 'none';
+        el._t -= dt;
+        if (el._t <= 0) {
+          el.remove();
+          this.speechEls.delete(npc);
+        }
+        continue;
+      }
       el._t -= dt;
       if (el._t <= 0 || npc.inert) {
         el.remove();

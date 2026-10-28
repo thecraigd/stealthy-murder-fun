@@ -24,6 +24,7 @@ export function local(x, z, rot, lx, lz) {
 // ------------------------------------------------------------------ floors
 export function floor(L, x1, z1, x2, z2, type, opts = {}) {
   const s = L.env;
+  (L.floorRects = L.floorRects || []).push([Math.min(x1, x2), Math.min(z1, z2), Math.max(x1, x2), Math.max(z1, z2)]);
   const y = opts.y ?? 0.02;
   const w = x2 - x1, d = z2 - z1;
   const cx = (x1 + x2) / 2, cz = (z1 + z2) / 2;
@@ -616,7 +617,7 @@ export function umbrellaTable(L, x, z, color = PAL.red) {
   s.cyl(0, 0, 0, 0.5, 0.72, PAL.white);
   s.cyl(0, 0, 0, 0.04, 2.3, PAL.white, NO);
   for (let i = 0; i < 8; i++) {
-    s.prim(UNIT.cone8, 0, 2.3, 0, 3.0, 0.5, 3.0, i % 2 ? color : PAL.white, { outline: i === 0, ry: (i / 8) * Math.PI * 2 });
+    s.prim(UNIT.cone8, 0, 2.35, 0, 2.1, 0.42, 2.1, i % 2 ? color : PAL.white, { outline: i === 0, ry: (i / 8) * Math.PI * 2 });
   }
   s.pop();
   L.world.addCircle(x, z, 0.5, { h: 0.75, sight: 'none' });

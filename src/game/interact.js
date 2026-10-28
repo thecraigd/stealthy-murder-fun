@@ -656,7 +656,7 @@ export class Interactions {
     const p = g.world.nearestWalkable(pr.x, pr.z, 2) || { x: pr.x, z: pr.z };
     const pk = this.spawnPickup(id, p.x, p.z, 0.02, { ammo: pr.ammo });
     g.emitNoise(p.x, p.z, loud, 'impact', null, { item: pk });
-    g.fx.emit('ring', p.x, 0.1, p.z, { n: 1, speed: 0, up: 0, gravity: 0, life: 0.5, size: 0.6, grow: 3 });
+    g.fx.groundRing(p.x, p.z, loud, 0xffe14a, 0.7);
   }
 
   swing(sel) {

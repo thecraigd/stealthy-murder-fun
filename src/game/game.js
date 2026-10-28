@@ -16,6 +16,7 @@ import { Story, TARGETS, OPPS } from './story.js';
 import { SetPieces } from './setpieces.js';
 import { ITEMS } from './items.js';
 import { Tips } from './tips.js';
+import { Ambient } from './ambient.js';
 import { OUTFITS } from './outfits.js';
 import { WATER_Y } from './terrain.js';
 
@@ -151,6 +152,7 @@ export class Game extends Emitter {
     for (const it of this.level.items) this.interactions.spawnPickup(it.id, it.x, it.z, it.y ?? 0.02);
     this.setpieces.init();
     this.convos = new Convos(this);
+    this.ambient = new Ambient(this);
 
     this.cam.yaw = this.cam.yawTarget = start === 'pier' ? 0 : this.cam.yaw;
     this.cam.zoom = this.cam.zoomTarget = this.mobile ? 0.25 : 0.32;
@@ -165,6 +167,10 @@ export class Game extends Emitter {
     this.challenges.beginRun(this);
     // intro flourish
     after(0.4, () => this.ui.bigText('GULLCREST KEY', 'Three targets. One island. Make it right.'));
+    after(3.8, () => {
+      const lines = { pier: 'Here we go. Clean in, clean out. Nobody innocent gets hurt.', kitchen: 'Apron on. Smile. Nobody looks twice at the help.', cargo: 'Hard hat, hi-vis. The universal invisibility cloak.', spa: 'Cucumber water and murder. What a combination.', security: 'Borrowed badge. Try not to salute anybody.', lighthouse: 'Best seat in the house. Let\u2019s keep it quiet.' };
+      this.ui.subtitle('Rook', lines[start] || lines.pier, 4);
+    });
     if (start === 'pier') {
       after(4.5, () => this.ui.toast('Tip: overhear conversations to discover opportunities.', 'info', '👂'));
       after(9.5, () => this.ui.toast(this.mobile ? 'Hold 👁 Sense to see targets & guards through walls.' : 'Hold Tab / V to Sense targets & guards through walls.', 'info', '👁'));
@@ -275,6 +281,7 @@ export class Game extends Emitter {
     this.separateNpcs();
     this.convos.update(dt);
     this.setpieces.update(dt);
+    this.ambient.update(dt);
     this.director.update(dt);
     this.story.update(dt);
     this.challenges.update(dt);
@@ -492,7 +499,7 @@ export class Game extends Emitter {
       const did = n.hear({ x, z, type, ...extra }, wantsInv);
       if (did) inv--;
     }
-    if (this.settings.showNoise && type !== 'footsteps') this.fx.emit('ring', x, 0.1, z, { n: 1, speed: 0, up: 0, gravity: 0, life: 0.6, size: radius * 0.5, grow: 1 });
+    if (this.settings.showNoise && type !== 'footsteps') this.fx.groundRing(x, z, radius, 0xffffff, 0.6);
   }
 
   nearestGuard(pos, maxD = 1e9) {

@@ -1,7 +1,8 @@
 // Gullcrest Key: the Baron's island estate. Static geometry, colliders, zones
 // and named anchors used by NPC routines and set-pieces.
 import * as THREE from 'three';
-import { MeshSink } from '../core/geo.js';
+import { MeshSink, UNIT } from '../core/geo.js';
+const UNIT_CONE4 = UNIT.cone4;
 import {
   PAL, makeEnvMaterial, makeEnvOutlineMaterial, makeRoofMaterial, makeRoofOutlineMaterial, makeGlassMaterial,
 } from '../core/materials.js';
@@ -62,6 +63,7 @@ export class Level {
     this.buildLighthouse();
     this.buildCove();
 
+    this.scatterGrass();
     const group = new THREE.Group();
     group.name = 'level';
     this.group = group;
@@ -89,6 +91,45 @@ export class Level {
     this.scene.add(group);
     this.clouds = buildSky(this.scene);
     this.world.buildNav(0.32);
+  }
+
+  // Little tufts of grass + wild flowers on open lawns.
+  scatterGrass() {
+    const w = this.world;
+    const s = this.env;
+    let rs = 99;
+    const rnd = () => ((rs = (rs * 16807) % 2147483647) / 2147483647);
+    const rects = this.floorRects || [];
+    const flowers = [PAL.flowerYellow, PAL.flowerWhite, PAL.flowerPink, PAL.flowerPurple];
+    const tmp = [];
+    let placed = 0;
+    for (let i = 0; i < 9000 && placed < 900; i++) {
+      const x = -48 + rnd() * 96, z = -36 + rnd() * 68;
+      if (w.landSDF(x, z) > -1.2) continue;
+      if (rects.some((r) => x > r[0] - 0.2 && x < r[2] + 0.2 && z > r[1] - 0.2 && z < r[3] + 0.2)) continue;
+      const zn = w.zoneAt(x, z);
+      if (zn && zn.building) continue;
+      tmp.length = 0;
+      if (w.query(x - 0.5, z - 0.5, x + 0.5, z + 0.5, tmp).length) continue;
+      placed++;
+      const k = rnd();
+      if (k < 0.12) {
+        s.cyl(x, 0, z, 0.012, 0.22, PAL.leafDark, { outline: false, seg: 6 });
+        s.ball(x, 0.25, z, 0.055, flowers[Math.floor(rnd() * 4)], { lo: true, outline: false });
+      } else {
+        const c = k < 0.55 ? PAL.grassDark : PAL.grassLight;
+        for (let j = 0; j < 3; j++) s.prim(UNIT_CONE4, x + (rnd() - 0.5) * 0.16, 0.09, z + (rnd() - 0.5) * 0.16, 0.07, 0.18 + rnd() * 0.1, 0.07, c, { outline: false, ry: rnd() * 3, rz: (rnd() - 0.5) * 0.4 });
+      }
+    }
+    // darker lawn patches for texture
+    for (let i = 0; i < 260; i++) {
+      const x = -48 + rnd() * 96, z = -36 + rnd() * 68;
+      if (w.landSDF(x, z) > -1.5) continue;
+      if (rects.some((r) => x > r[0] - 1 && x < r[2] + 1 && z > r[1] - 1 && z < r[3] + 1)) continue;
+      const zn = w.zoneAt(x, z);
+      if (zn && zn.building) continue;
+      s.plane(x, 0.008, z, 1.2 + rnd() * 2.2, 0.8 + rnd() * 1.6, rnd() < 0.5 ? 0x8bd65a : 0x74c84a, { ry: rnd() * 3 });
+    }
   }
 
   // ------------------------------------------------------------------ land
@@ -526,7 +567,7 @@ export class Level {
     P.hipRoof(roof, 35, -22, 14.7, 12.7, 3.2, 2.62, PAL.roofTeal, 0x2f7f7b, 0.6);
     this.roofs.push({ id: 'spa', sink: roof, ...this.buildings.spa });
     P.floor(L, 22, -21, 28, -15, 'stone', { a: 0xe8dcc4, b: 0xcfc2a8 });
-    P.floor(L, 28.5, -15, 31, -8, 'stone', { a: 0xe8dcc4, b: 0xcfc2a8 });
+    P.floor(L, 28.5, -15.8, 31, -12, 'stone', { a: 0xe8dcc4, b: 0xcfc2a8 });
   }
 
   // ------------------------------------------------------------------ pool

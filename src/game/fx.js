@@ -268,6 +268,17 @@ export class FX {
     this.ghosts.push({ g, t: 0, x, z });
   }
 
+  // Flat expanding ring on the ground (noise / impact readability).
+  groundRing(x, z, radius = 3, color = 0xffffff, life = 0.6) {
+    if (!this.ringGeo) this.ringGeo = new THREE.RingGeometry(0.9, 1, 40).rotateX(-Math.PI / 2);
+    this.rings = this.rings || [];
+    const m = new THREE.Mesh(this.ringGeo, new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.7, depthWrite: false }));
+    m.position.set(x, 0.07, z);
+    m.renderOrder = 3;
+    this.root.add(m);
+    this.rings.push({ m, t: 0, life, radius });
+  }
+
   glint(x, y, z) {
     const s = this._sprite('glint', 0xffffff);
     s.scale.setScalar(0.01);
@@ -341,6 +352,18 @@ export class FX {
       if (k >= 1) {
         g.g.removeFromParent();
         this.ghosts.splice(i, 1);
+      }
+    }
+    if (this.rings) for (let i = this.rings.length - 1; i >= 0; i--) {
+      const r = this.rings[i];
+      r.t += dt;
+      const k = r.t / r.life;
+      r.m.scale.setScalar(0.2 + k * r.radius);
+      r.m.material.opacity = 0.7 * (1 - k);
+      if (k >= 1) {
+        r.m.removeFromParent();
+        r.m.material.dispose();
+        this.rings.splice(i, 1);
       }
     }
     for (let i = this.glints.length - 1; i >= 0; i--) {
