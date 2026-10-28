@@ -17,14 +17,16 @@ const charMat = makeCharMaterial();
 const outlineMat = makeOutlineMaterial();
 
 // Cached primitive geometries.
+// Kept deliberately low-poly: every character is drawn three times
+// (body, ink outline, shadow) and there are ~45 of them.
 const P = {
-  sphere: new THREE.SphereGeometry(0.5, 16, 12),
-  sphereLo: new THREE.SphereGeometry(0.5, 10, 8),
+  sphere: new THREE.SphereGeometry(0.5, 12, 9),
+  sphereLo: new THREE.SphereGeometry(0.5, 7, 5),
   box: new THREE.BoxGeometry(1, 1, 1),
-  cyl: new THREE.CylinderGeometry(0.5, 0.5, 1, 14),
-  cone: new THREE.ConeGeometry(0.5, 1, 14),
-  torus: new THREE.TorusGeometry(0.5, 0.1, 6, 16),
-  capsule: (r, len) => new THREE.CapsuleGeometry(r, len, 4, 10),
+  cyl: new THREE.CylinderGeometry(0.5, 0.5, 1, 10),
+  cone: new THREE.ConeGeometry(0.5, 1, 10),
+  torus: new THREE.TorusGeometry(0.5, 0.1, 5, 12),
+  capsule: (r, len) => new THREE.CapsuleGeometry(r, len, 3, 8),
 };
 
 const _m = new THREE.Matrix4();
@@ -75,7 +77,7 @@ class SkinBuf {
   }
 }
 
-const lathe = (pts, seg = 14) => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), seg);
+const lathe = (pts, seg = 11) => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), seg);
 
 function darken(hex, k) {
   const c = new THREE.Color(hex);

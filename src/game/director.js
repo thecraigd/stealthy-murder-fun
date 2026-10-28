@@ -22,6 +22,7 @@ export class Director {
       this.stats.combat++;
       g.audio.stinger('spotted');
       g.tips?.show('spotted');
+      g.quip?.('spotted');
       g.ui.toast('You’ve been spotted!', 'danger');
       g.cam.shake(0.15, 0.2);
     }

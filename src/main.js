@@ -53,7 +53,13 @@ class App {
     this.game.on('complete', (info) => setTimeout(() => this.menus.results(info), 200));
     this.game.on('failed', (info) => this.menus.failed(info));
     // unlock audio on first interaction anywhere
-    const unlock = () => this.audio.unlock();
+    const unlock = () => {
+      this.audio.unlock();
+      if (!this.game.running) {
+        this.audio.startMusic();
+        this.audio.setIntensity(0);
+      }
+    };
     window.addEventListener('pointerdown', unlock, { once: true });
     window.addEventListener('keydown', unlock, { once: true });
     document.addEventListener('visibilitychange', () => {

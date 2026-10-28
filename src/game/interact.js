@@ -334,6 +334,7 @@ export class Interactions {
         g.tossIntoSea(body, tx, tz, s.y);
         g.director.stats.bodiesHidden++;
         g.challenges.event('bodyDumped', { body, cliff: s.name.includes('cliff') });
+        g.quip('dump');
       },
     });
   }
@@ -357,6 +358,7 @@ export class Interactions {
         g.director.stats.disguises++;
         g.challenges.event('disguise', { outfit: n.outfit });
         g.tips.show('disguise');
+        g.quip('disguise');
         if (wasDragging) p.drag = n;
       },
     });
@@ -378,6 +380,8 @@ export class Interactions {
           g.director.stats.disguises++;
           g.challenges.event('disguise', { outfit: it.outfit });
           g.tips.show('disguise');
+          g.quip('disguise');
+        g.quip('disguise');
         },
       });
       return;
@@ -420,6 +424,7 @@ export class Interactions {
           }
         }
         g.challenges.event('hide', { spot: hs });
+        g.quip('hide');
       },
     });
   }

@@ -206,7 +206,15 @@ export class Story {
     return s.wp ? s.wp(g) : null;
   }
   hintText() {
-    if (!this.tracked) return null;
+    const g = this.game;
+    if (this.exitReady && !this.tracked) return '<span class="hint-ic">\u26F5</span><b>Get out</b> \u2014 water taxi at the pier, rowboat in the cove, or the Baron\u2019s speedboat (needs his key).';
+    if (!this.tracked) {
+      if (g.time < 6) return null;
+      if (!this.discovered.size) return '<span class="hint-ic">\uD83D\uDC42</span><b>Explore</b> \u2014 find your targets (red \u25BC) and eavesdrop on gossip to uncover opportunities.';
+      const open = [...this.discovered].filter((id) => !this.done.has(id) && !(OPPS[id].target && this.killed[OPPS[id].target]));
+      if (open.length) return '<span class="hint-ic">\uD83D\uDCA1</span>Pause \u2192 <b>Opportunities</b> to track a lead you\u2019ve heard about.';
+      return '<span class="hint-ic">\uD83D\uDC42</span><b>Keep exploring</b> \u2014 there are more ways in. Listen to the staff.';
+    }
     const o = OPPS[this.tracked];
     const i = this.currentStep(this.tracked);
     if (i >= o.steps.length) return null;

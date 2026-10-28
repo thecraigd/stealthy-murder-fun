@@ -415,6 +415,23 @@ export class Game extends Emitter {
     }
   }
 
+  // Rook mutters to himself now and then.
+  quip(kind) {
+    const Q = {
+      ko: ['Sorry, pal. Sleep tight.', 'Nap time.', 'Nothing personal.', 'You\u2019ll wake up with a headache. And no memory of me.', 'Shh. Shh. There we go.'],
+      disguise: ['Fits like a glove. Smells like\u2026 feet.', 'New me. Same problems.', 'Nobody looks at the help.', 'Hm. A little snug.'],
+      hide: ['Cozy.', 'Very dignified, Rook.', 'Hold your breath\u2026'],
+      dump: ['Swim with the fishes.', 'The sea keeps secrets.', 'Splash.'],
+      target: ['One down.', 'That\u2019s for my brother.', 'Clean.', 'Accidents happen.'],
+      spotted: ['Uh oh.', 'Time to go!', 'Not again\u2026'],
+      kill: ['That wasn\u2019t the plan.', 'I\u2019m better than this\u2026', 'Dammit.'],
+    };
+    const now = this.time;
+    if (now - (this._quipT || -99) < 9 || Math.random() > 0.55) return;
+    this._quipT = now;
+    after(0.6, () => this.ui.subtitle('Rook', pick(Q[kind]), 2.6));
+  }
+
   // ---------------------------------------------------------------- API
   anchor(name) {
     const a = this.level.anchors[name];
@@ -591,6 +608,7 @@ export class Game extends Emitter {
     if (this.player.drag === n) return;
     n.knockOut(cause);
     this.tips.show('ko');
+    this.quip('ko');
     this.fx.stars(n, 5);
     this.audio.sfx('thud', n.pos);
     this.director.stats.kos++;
@@ -609,6 +627,7 @@ export class Game extends Emitter {
       this.ui.toast(cause.accident ? 'Non-target killed in an “accident”. Karma ↓' : 'Non-target eliminated. That’s not who you are anymore. Karma ↓', 'warn', '👻');
     }
     this.challenges.event('nonTargetKill', { npc: n, cause });
+    if (!cause.accident) this.quip('kill');
   }
   eliminateTarget(n, cause = {}) {
     if (n.state === 'dead' && n.isTarget && this.story.killed[n.id]) return;
@@ -623,6 +642,8 @@ export class Game extends Emitter {
     const title = cause.accident ? 'ACCIDENT' : 'TARGET ELIMINATED';
     after(0.3, () => this.ui.bigText(title, `${n.name}${cause.label ? ' — ' + cause.label : ''}`, cause.accident ? 'accident' : 'kill'));
     this.challenges.event('targetKilled', { npc: n, cause, witnessed });
+    this._quipT = -99;
+    this.quip('target');
     if (cause.opp) this.progress.completeOpp(cause.opp);
     if (cause.noBody) n.found = true;
   }
