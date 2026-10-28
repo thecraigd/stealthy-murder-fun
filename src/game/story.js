@@ -1,3 +1,4 @@
+import { after } from '../core/util.js';
 // Mission objectives, discoverable opportunities (guided kill stories), flags.
 
 export const OPPS = {
@@ -174,7 +175,7 @@ export class Story {
       this.exitReady = true;
       const g = this.game;
       g.ui.toast('All targets down. Get off the island!', 'good', '⛵');
-      setTimeout(() => g.ui.bigText('ESCAPE THE ISLAND', 'Water taxi (pier), rowboat (cove) or the Baron’s speedboat', 'exit'), 3500);
+      after(3.5, () => g.ui.bigText('ESCAPE THE ISLAND', 'Water taxi (pier), rowboat (cove) or the Baron’s speedboat', 'exit'));
     }
   }
   objectiveList() {

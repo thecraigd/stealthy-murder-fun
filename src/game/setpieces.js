@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { buildProp, MeshSink } from '../core/geo.js';
 import { vtoon, outlineBasic, PAL, toonGradient, makeRoofMaterial, makeRoofOutlineMaterial } from '../core/materials.js';
 import { makeItemMesh, ITEMS } from './items.js';
-import { pick, dist, yawTo, angleDiff, clamp, damp } from '../core/util.js';
+import { pick, dist, yawTo, angleDiff, clamp, damp, after } from '../core/util.js';
 import { WATER_Y } from './terrain.js';
 
 const PI = Math.PI;
@@ -243,13 +243,13 @@ export class SetPieces {
       'And I owe it all to my dear friends. And my enemies’ money! Ha!',
       'So raise your glasses! To the Syndicate! To me!',
     ];
-    lines.forEach((l, i) => setTimeout(() => {
+    lines.forEach((l, i) => after((2000 + i * 5800) / 1000, () => {
       if (n.inert || n.task?.id !== 'toast') return;
       n.say(l, 4.5, { important: true, range: 22 });
       if (i === lines.length - 1) {
         for (const o of g.npcs) if (!o.inert && o.role === 'guest' && o !== n && o.distTo(n.pos) < 12 && !o.scripted) o.char.play('cheer', 1.2);
       }
-    }, 2000 + i * 5800));
+    }));
     g.story.flag('baron_toasting');
   }
 
@@ -356,24 +356,24 @@ export class SetPieces {
         this.updaters.splice(this.updaters.indexOf(fly), 1);
         g.fx.splash(tx, 1.05, tz, true);
         g.audio.sfx('splash', { x: tx, z: tz });
-        setTimeout(() => {
+        after(0.25, () => {
           st.chomp = 1.4;
           g.audio.sfx('chomp', { x: tx, z: tz });
           g.fx.pop(tx, 2.4, tz, 'CHOMP!', '#ff5a5a', true);
           g.cam.shake(0.25, 0.3);
-          setTimeout(() => {
+          after(0.5, () => {
             g.fx.splash(tx, 1.05, tz, true);
             if (n.isTarget) g.eliminateTarget(n, { method: 'shark', label: 'Feeding Time', accident: true, noBody: true, opp: 'feeding_time' });
             else if (!n.inert || n.state !== 'dead') g.killNpc(n, { method: 'shark', accident: true, noBody: true, silent: !alive });
             n.removeFromWorld();
             n.hiddenIn = { name: 'Shark' };
             st.burp = 3;
-            setTimeout(() => {
+            after(2.2, () => {
               g.fx.pop(tx, 1.8, tz, '*burp*', '#9fe8ff');
               g.audio.sfx('burp', { x: tx, z: tz });
-            }, 2200);
-          }, 500);
-        }, 250);
+            });
+          });
+        });
       }
     };
     this.updaters.push(fly);
@@ -384,9 +384,9 @@ export class SetPieces {
     g.story.flag('baron_feeding');
     const p = g.player;
     if (p.outfit === 'aquarist' && p.zone()?.id === 'aquarium') {
-      setTimeout(() => !n.inert && n.say('Ah, Finn! Just in time. Stand back, he’s feisty today.', 3, { important: true }), 1500);
+      after(1.5, () => !n.inert && n.say('Ah, Finn! Just in time. Stand back, he’s feisty today.', 3, { important: true }));
     }
-    setTimeout(() => g.story.flags.delete('baron_feeding'), 34000);
+    after(34, () => g.story.flags.delete('baron_feeding'));
   }
 
   // =============================================================== WHISKEY
@@ -400,7 +400,7 @@ export class SetPieces {
   }
   ev_baronWhiskey(n) {
     const g = this.game;
-    setTimeout(() => {
+    after(5, () => {
       if (n.inert || n.task?.id !== 'study') return;
       n.setHeld('drink');
       n.char.play('use', 0.8);
@@ -409,9 +409,9 @@ export class SetPieces {
         const kind = g.story.poisons.whiskey_poisoned;
         g.story.flags.delete('whiskey_poisoned');
         n.poisonSource = 'nightcap';
-        setTimeout(() => this.poisonNpc(n, kind, 'toilet2'), 2500);
+        after(2.5, () => this.poisonNpc(n, kind, 'toilet2'));
       }
-    }, 5000);
+    });
   }
 
   // =============================================================== BAR / MARTINI
@@ -432,14 +432,14 @@ export class SetPieces {
     const g = this.game;
     const bt = g.npcById('bartender');
     n.say('The usual, darling. Extra olive.', 2.5, { important: true });
-    setTimeout(() => {
+    after(2, () => {
       if (bt && !bt.inert) bt.say('One Vexed Martini, coming right up.', 2.5);
-      setTimeout(() => {
+      after(3, () => {
         if (n.inert || n.task?.id !== 'bar') return;
         this.martini.on = true;
         this.martini.glass.visible = true;
         if (bt && !bt.inert) bt.say('There you go. Let it breathe.', 2);
-        setTimeout(() => {
+        after(15, () => {
           this.martini.on = false;
           this.martini.glass.visible = false;
           if (n.inert || n.task?.id !== 'bar') return;
@@ -450,12 +450,12 @@ export class SetPieces {
             const kind = g.story.poisons.martini_poisoned;
             g.story.flags.delete('martini_poisoned');
             n.poisonSource = 'vexed_martini';
-            setTimeout(() => this.poisonNpc(n, kind, 'toilet1'), 2000);
+            after(2, () => this.poisonNpc(n, kind, 'toilet1'));
           }
-          setTimeout(() => !n.inert && n.setHeld(null), 4000);
-        }, 15000);
-      }, 3000);
-    }, 2000);
+          after(4, () => !n.inert && n.setHeld(null));
+        });
+      });
+    });
   }
 
   // =============================================================== TOILET DROWN
@@ -549,10 +549,10 @@ export class SetPieces {
             g.killCam(victim, 2.0);
           }
           this.flashSkeleton(victim, 1.4);
-          setTimeout(() => {
+          after(1.4, () => {
             if (victim.isTarget) g.eliminateTarget(victim, { method: 'electrocuted', label: 'Hot Tub Time', accident: true, opp: 'hot_tub' });
             else g.killNpc(victim, { method: 'electrocuted', accident: true });
-          }, 1400);
+          });
         }
         g.emitNoise(tub.x, tub.z, 9, 'crash', null);
       }
@@ -676,12 +676,12 @@ export class SetPieces {
   ev_vexSmoke(n) {
     const g = this.game;
     if (g.story.has('rail_loose')) {
-      setTimeout(() => {
+      after(5, () => {
         if (n.inert || n.task?.id !== 'smoke' || n.scripted) return;
         n.char.play('stretch', 1.0);
         n.say('Ahh, what a view. I’ll just lean on—', 2);
-        setTimeout(() => !n.inert && n.task?.id === 'smoke' && !n.scripted && this.fallOff(n, false), 1400);
-      }, 5000);
+        after(1.4, () => !n.inert && n.task?.id === 'smoke' && !n.scripted && this.fallOff(n, false));
+      });
     }
   }
 
@@ -714,7 +714,7 @@ export class SetPieces {
     const g = this.game;
     const th = g.npcById('therapist');
     const p = g.player;
-    setTimeout(() => {
+    after(1.5, () => {
       if (n.inert) return;
       const thereT = th && !th.inert && th.distTo(this.A('massage_therapist')) < 4;
       if (p.outfit === 'masseur' && p.zone()?.id === 'spa' && g.dist(this.A('massage_table')) < 5) {
@@ -725,7 +725,7 @@ export class SetPieces {
       } else {
         n.say('Mmm. Yes. Right there. Don’t talk.', 2.5);
       }
-    }, 1500);
+    });
     // Pull the therapist to work if she's around.
     if (th && !th.inert && th.state === 'routine') {
       th.task = { at: 'massage_therapist', do: 'work', t: [34, 34] };
@@ -796,16 +796,16 @@ export class SetPieces {
     const g = this.game;
     n.say('Time to lift! No spotter. Spotters are for wimps.', 2.5);
     if (g.story.has('rack_loose')) {
-      setTimeout(() => {
+      after(8, () => {
         if (n.inert || n.task?.id !== 'bench') return;
         n.say('Ninety-eight… ninety-nine… ONE HUNDR—', 2);
         g.slowmo(0.35, 1.2);
         g.killCam(n, 2.0);
-        setTimeout(() => {
+        after(0.6, () => {
           this.barbell.mode = 'falling';
           this.barbell.v = -1;
-        }, 600);
-      }, 8000);
+        });
+      });
     }
   }
 
@@ -894,7 +894,7 @@ export class SetPieces {
             return 'shiver';
           },
         };
-        setTimeout(() => {
+        after(12, () => {
           if (b.inert) return;
           if (st.locked && st.heat) {
             g.killCam(b, 1.6);
@@ -905,7 +905,7 @@ export class SetPieces {
             b.resumeRoutine();
           }
           st.cooking = false;
-        }, 12000);
+        });
       } else if (inside && !st.locked && st.heatT > 3 && !st.complained) {
         st.complained = true;
         b.say('Whoa, too hot! Brick is out!', 2);
@@ -920,7 +920,7 @@ export class SetPieces {
   }
   ev_brickSauna(n) {
     this.game.story.flag('brick_in_sauna');
-    setTimeout(() => this.game.story.flags.delete('brick_in_sauna'), 36000);
+    after(36, () => this.game.story.flags.delete('brick_in_sauna'));
   }
 
   // =============================================================== CRANE
@@ -1035,17 +1035,17 @@ export class SetPieces {
     const g = this.game;
     n.setHeld('shake');
     n.say('Shake time! GAINS!', 2);
-    setTimeout(() => {
+    after(4, () => {
       if (n.inert) return;
       n.char.play('use', 0.8);
-      setTimeout(() => !n.inert && n.setHeld(null), 3000);
+      after(3, () => !n.inert && n.setHeld(null));
       if (g.story.has('shake_poisoned')) {
         const kind = g.story.poisons.shake_poisoned;
         g.story.flags.delete('shake_poisoned');
         n.poisonSource = 'protein_shake';
-        setTimeout(() => this.poisonNpc(n, kind, 'toilet0'), 2500);
+        after(2.5, () => this.poisonNpc(n, kind, 'gym_toilet'));
       }
-    }, 4000);
+    });
   }
 
   // =============================================================== SNIPER

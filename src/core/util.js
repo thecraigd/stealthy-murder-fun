@@ -94,3 +94,33 @@ export function formatTime(sec) {
   const s = sec % 60;
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
+
+// Game-time scheduler (pauses with the game, respects slow-motion).
+export const timers = {
+  list: [],
+  now: 0,
+  after(sec, fn) {
+    this.list.push({ t: this.now + sec, fn });
+  },
+  update(now) {
+    this.now = now;
+    if (!this.list.length) return;
+    const due = [];
+    this.list = this.list.filter((x) => {
+      if (x.t <= now) {
+        due.push(x);
+        return false;
+      }
+      return true;
+    });
+    due.sort((a, b) => a.t - b.t);
+    for (const x of due) {
+      try {
+        x.fn();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  },
+};
+export const after = (sec, fn) => timers.after(sec, fn);

@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { ITEMS, makeItemMesh } from './items.js';
 import { OUTFITS } from './outfits.js';
-import { angleDiff, yawTo, dist, clamp, pick } from '../core/util.js';
+import { angleDiff, yawTo, dist, clamp, pick, after } from '../core/util.js';
 
 const GRAV = 14;
 
@@ -659,7 +659,7 @@ export class Interactions {
     p.char.play('swing', 0.45);
     g.audio.sfx('whoosh', p.pos);
     p.startBusy({ dur: 0.38, anim: 'idle', illegal: true, illegalReason: 'attack', hideHeld: false });
-    setTimeout(() => {
+    after(0.16, () => {
       const n = this.autoAimTarget(1.6, 1.1, false);
       if (!n) return;
       g.cam.shake(0.18, 0.15);
@@ -690,7 +690,7 @@ export class Interactions {
         }
       }
       g.emitNoise(n.pos.x, n.pos.z, 5, 'clatter', n);
-    }, 160);
+    });
   }
 
   placePeel(sel) {

@@ -35,8 +35,8 @@ const P = (x, z, yaw = 0, extra = {}) => ({ x, z, yaw, ...extra });
 
 // Extra anchors (on top of the ones the level defines).
 export const EXTRA_ANCHORS = {
-  aq_post: P(-3.4, -17.6, -PI / 2),
-  aq_chat: P(-4.6, -16.9, PI / 2),
+  aq_post: P(-3.3, -15.0, PI / 2),
+  aq_chat: P(-4.4, -15.4, PI / 2),
   aq_door_out: P(-0.7, -16.0, PI / 2),
   study_door_aq: P(-10.7, -18.3, -PI / 2),
   toast_guard: P(8.4, -17.6, -PI * 0.75),

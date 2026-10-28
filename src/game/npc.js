@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { Character } from './character.js';
 import { OUTFITS, canAccess } from './outfits.js';
 import { makeHeldMesh } from './items.js';
-import { damp, dampAngle, clamp, yawTo, angleDiff, dist, pick, approachAngle } from '../core/util.js';
+import { damp, dampAngle, clamp, yawTo, angleDiff, dist, pick, approachAngle, after } from '../core/util.js';
 
 const WALK = 1.75;
 const HURRY = 2.8;
@@ -330,7 +330,7 @@ export class NPC {
     const g = this.game;
     const p = g.player;
     this.seesPlayer = false;
-    if (!p.alive) return;
+    if (!p.alive || g.ghost) return;
     const dx = p.pos.x - this.pos.x, dz = p.pos.z - this.pos.z;
     const d = Math.hypot(dx, dz);
     const f = p.flags;
@@ -462,12 +462,12 @@ export class NPC {
       if (o === this || !o.isGuard || o.inert || o.state === 'combat' || o.scripted) continue;
       const d = o.distTo(this.pos);
       if (d < 32) {
-        setTimeout(() => {
+        after((600 + d * 60) / 1000, () => {
           if (!o.inert && o.state !== 'combat' && !o.scripted) {
             o.setState('search', { center: { ...g.player.pos }, t: 30, hurry: true, fromRadio: true });
             o.knowsCompromised = true;
           }
-        }, 600 + d * 60);
+        });
       }
     }
   }
@@ -610,7 +610,7 @@ export class NPC {
       this.poisoned = null;
       this.scripted = null;
       this.say(pick(['*cough* that tasted… funny…', 'Urk—', 'Ooh… my tummy…']), 1.6);
-      setTimeout(() => this.game.killNpc(this, { method: 'poison', accident: true, label: 'Poisoned' }), 1200);
+      after(1.2, () => this.game.killNpc(this, { method: 'poison', accident: true, label: 'Poisoned' }));
       this.poisoned = { kind: 'dying', t: 0 };
       this.scripted = { blind: true, noPanic: true, update: () => 'vomit' };
     }
@@ -645,6 +645,12 @@ export class NPC {
     const t = this.task;
     if (this.taskPhase === 'goto') {
       if (this.arrived) {
+        const sp = this._taskSpot(t);
+        if (sp && dist(this.pos.x, this.pos.z, sp.x, sp.z) > 3.2) {
+          // Couldn't get there (blocked door, etc). Try the next task.
+          this._advanceTask();
+          return 'idle';
+        }
         this.taskPhase = 'act';
         const a = this._taskSpot(t);
         const span = t.t || [6, 12];
@@ -671,13 +677,14 @@ export class NPC {
         const fp = typeof t.face === 'string' ? g.anchor(t.face) : t.face;
         if (fp) this.faceTo(fp.x, fp.z, dt, 6);
       }
-      // stay glued to the spot (unless pushed)
-      if (dist(this.pos.x, this.pos.z, a.x, a.z) > 0.6) {
+      // Glide onto the exact spot (it may be inside furniture: tubs, sofas,
+      // tables). Re-path only if something shoved us far away.
+      if (dist(this.pos.x, this.pos.z, a.x, a.z) > 3.2) {
         this.taskPhase = 'goto';
         this.goTo(a.x, a.z, WALK);
-      } else if (a.y != null || t.snap) {
-        this.pos.x = damp(this.pos.x, a.x, 6, dt);
-        this.pos.z = damp(this.pos.z, a.z, 6, dt);
+      } else {
+        this.pos.x = damp(this.pos.x, a.x, 5, dt);
+        this.pos.z = damp(this.pos.z, a.z, 5, dt);
       }
     }
     if (t.onTick) {
@@ -872,13 +879,13 @@ export class NPC {
         this.faceTo(p.pos.x, p.pos.z, dt, 14);
         this.meleeCD = 1.3;
         this.char.play('punch', 0.4);
-        setTimeout(() => {
+        after(0.18, () => {
           if (!this.inert && this.distTo(p.pos) < 1.6 && !p.hidden) {
             p.hurt(16, this);
             g.audio.sfx('punch', p.pos);
             g.fx.pop(p.pos.x, 1.6, p.pos.z, 'POW!', '#ff5a3a');
           }
-        }, 180);
+        });
         return 'idle';
       }
       if (d > 8.5 || (s.aim || 0) < 0 && d > 3) {
@@ -926,7 +933,7 @@ export class NPC {
     g.audio.sfx('gunshot', this.pos);
     g.emitNoise(this.pos.x, this.pos.z, 26, 'gunshot', this);
     if (hit) {
-      setTimeout(() => p.hurt(22, this), 60);
+      after(0.06, () => p.hurt(22, this));
     }
   }
 

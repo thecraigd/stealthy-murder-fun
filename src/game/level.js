@@ -118,7 +118,8 @@ export class Level {
       return d;
     };
     w.landSDF = (x, z) => Math.min(terrSDF(x, z), pierSDF(x, z));
-    const beach = (x, z) => (z > 22 || (x < -26 && z > 14) ? 1 : 0);
+    // Sandy beaches in the south-west cove and south-east; the dock frontage is a quay wall.
+    const beach = (x, z) => ((z > 22 && (x < -25 || x > 27)) || (x < -26 && z > 14) ? 1 : 0);
     this.terrain = buildTerrain(this.scene, terrain, { bounds: BOUNDS, beach, piers });
     this.zone('island', 'Gullcrest Grounds', 'public', -60, -46, 60, 54, { outdoor: true });
   }
@@ -261,9 +262,9 @@ export class Level {
     s.box(12.9, 2.3, -24.6, 0.05, 0.6, 0.05, PAL.black, { outline: false });
     // curtains separating backstage (only reachable from behind the bar)
     for (let z = -25.8; z < -22.3; z += 0.5) s.cyl(11.3, 0, z, 0.27, 2.4, 0xb02a3a, { outline: false, seg: 8 });
-    for (let x = 11.6; x < 12.7; x += 0.5) s.cyl(x, 0, -22.3, 0.27, 2.4, 0xb02a3a, { outline: false, seg: 8 });
+    for (let x = 11.6; x < 12.2; x += 0.5) s.cyl(x, 0, -22.3, 0.27, 2.4, 0xb02a3a, { outline: false, seg: 8 });
     this.world.addBox(11.05, -26, 11.55, -22.1, { h: 2.4, sight: 'tall' });
-    this.world.addBox(11.05, -22.55, 12.8, -22.05, { h: 2.4, sight: 'tall' });
+    this.world.addBox(11.05, -22.55, 12.32, -22.05, { h: 2.4, sight: 'tall' });
     // tables + guests
     const tables = [[0.6, -20.6], [0.6, -15.4], [0.6, -10.6], [9.4, -12.0]];
     tables.forEach(([x, z], i) => {
@@ -380,13 +381,11 @@ export class Level {
     P.rug(L, 2, -4, 2.6, 7, PAL.carpetRed, PAL.carpetGold);
     P.column(L, -1.2, -1, 0.28);
     P.column(L, 5.2, -1, 0.28);
-    P.column(L, -1.2, -7, 0.28);
-    P.column(L, 5.2, -7, 0.28);
-    P.counter(L, 4.8, -4.6, 0.7, 2.2, 0, PAL.woodDark, PAL.marble, 1.0);
-    this.A('reception', 5.5, -4.6, -Math.PI / 2);
+    P.counter(L, 4.4, -6.85, 2.0, 0.6, 0, PAL.woodDark, PAL.marble, 1.0);
+    this.A('reception', 4.4, -7.45, 0);
     this.A('foyer_greet', 2, -2.6, 0);
     this.A('foyer_guest', 2.2, -1.4, Math.PI);
-    P.plantPot(L, -1.3, -4.2, 0.9, 'flower');
+    P.plantPot(L, -1.3, -7.3, 0.9, 'flower');
     P.painting(L, -0.3, -7.85, 0, 1.0, 1.3, 1.6, [0x7a3a8a, 0xffd9bd, PAL.gold, 0x2a2430]);
     this.A('foyer_inside', 2, -3, Math.PI);
 
@@ -553,7 +552,6 @@ export class Level {
     this.A('pool_table', 27.5, -1.5, -Math.PI / 2);
     this.A('pool_edge1', 33, 0.9, Math.PI);
     this.A('pool_edge2', 41, -1.0, -Math.PI / 2);
-    this.A('pool_swim', 34, -4, 0);
     // flamingo float (cute)
     s.push(31.5, 0.15, -5.5, 0.6);
     s.prim(new THREE.TorusGeometry(0.5, 0.2, 8, 16).rotateX(Math.PI / 2), 0, 0.05, 0, 1, 1, 1, PAL.pink);
@@ -600,8 +598,8 @@ export class Level {
     P.weightsRack(L, 31.2, 16.8, Math.PI);
     P.punchingBag(L, 31.4, 13.6);
     this.A('punchbag', 32.2, 13.6, -Math.PI / 2);
-    P.treadmill(L, 37.6, 8.0, 0);
-    P.treadmill(L, 38.8, 8.0, 0);
+    P.treadmill(L, 35.6, 8.0, 0);
+    P.treadmill(L, 36.8, 8.0, 0);
     P.boxingRing(L, 36.2, 14.4, 4.4);
     this.A('ring1', 35.4, 14.4, Math.PI / 2, { y: 0.6 });
     this.A('ring2', 37.0, 14.4, -Math.PI / 2, { y: 0.6 });
@@ -625,7 +623,9 @@ export class Level {
     s.box(43.08, 1.0, 12.1, 0.02, 0.8, 0.6, PAL.glass, { outline: false });
     this.world.addRect(43.5, 12.1, 0.8, 0.8, { h: 1.6 });
     this.A('shake_fridge', 42.6, 12.1, Math.PI / 2);
-    P.bench(L, 41.0, 17.4, Math.PI);
+    P.toilet(L, 41.0, 17.45, Math.PI);
+    this.world.addRect(41.0, 17.45, 0.6, 0.7, { h: 0.9, sight: 'none' });
+    this.A('gym_toilet', 41.0, 16.65, 0);
     const roof = new MeshSink({ chunk: 1000, outline: 0.04 });
     P.hipRoof(roof, 37, 12, 14.7, 12.7, 3.0, 2.62, 0x4a7fd6, 0x3a6ab8, 0.6);
     this.roofs.push({ id: 'gym', sink: roof, ...this.buildings.gym });
@@ -1068,7 +1068,7 @@ export class Level {
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2;
       const da = Math.atan2(Math.sin(a - 0.75), Math.cos(a - 0.75));
-      if (Math.abs(da) < 0.32) continue;
+      if (Math.abs(da) < 0.55) continue;
       const px = x + Math.cos(a) * (R - 0.15), pz = z + Math.sin(a) * (R - 0.15);
       this.world.addCircle(px, pz, 0.45, { h: 2.6 });
     }

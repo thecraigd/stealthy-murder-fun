@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { G } from '../core/materials.js';
 import { Input } from '../core/input.js';
-import { Emitter, clamp, dist, yawTo, angleDiff, pick, damp } from '../core/util.js';
+import { Emitter, clamp, dist, yawTo, angleDiff, pick, damp, after, timers } from '../core/util.js';
 import { Level } from './level.js';
 import { CameraRig } from './camera.js';
 import { Player } from './player.js';
@@ -161,10 +161,10 @@ export class Game extends Emitter {
     this.audio.ambience(true);
     this.challenges.beginRun(this);
     // intro flourish
-    setTimeout(() => this.ui.bigText('GULLCREST KEY', 'Three targets. One island. Make it right.'), 400);
+    after(0.4, () => this.ui.bigText('GULLCREST KEY', 'Three targets. One island. Make it right.'));
     if (start === 'pier') {
-      setTimeout(() => this.ui.toast('Tip: overhear conversations to discover opportunities.', 'info', '👂'), 4500);
-      setTimeout(() => this.ui.toast(this.mobile ? 'Hold 👁 Sense to see targets & guards through walls.' : 'Hold Tab / V to Sense targets & guards through walls.', 'info', '👁'), 9500);
+      after(4.5, () => this.ui.toast('Tip: overhear conversations to discover opportunities.', 'info', '👂'));
+      after(9.5, () => this.ui.toast(this.mobile ? 'Hold 👁 Sense to see targets & guards through walls.' : 'Hold Tab / V to Sense targets & guards through walls.', 'info', '👁'));
     }
     this.last = performance.now();
     this.render();
@@ -225,6 +225,7 @@ export class Game extends Emitter {
     }
     const dt = rawDt * this.timeScale;
     this.time += dt;
+    timers.update(this.time);
     G.uTime.value += rawDt;
 
     // global input
@@ -607,7 +608,7 @@ export class Game extends Emitter {
     this.story.targetKilled(n.id, cause.method);
     this.audio.stinger('kill');
     const title = cause.accident ? 'ACCIDENT' : 'TARGET ELIMINATED';
-    setTimeout(() => this.ui.bigText(title, `${n.name}${cause.label ? ' — ' + cause.label : ''}`, cause.accident ? 'accident' : 'kill'), 300);
+    after(0.3, () => this.ui.bigText(title, `${n.name}${cause.label ? ' — ' + cause.label : ''}`, cause.accident ? 'accident' : 'kill'));
     this.challenges.event('targetKilled', { npc: n, cause, witnessed });
     if (cause.opp) this.progress.completeOpp(cause.opp);
     if (cause.noBody) n.found = true;
@@ -620,7 +621,7 @@ export class Game extends Emitter {
     this.audio.sfx('slip', n.pos);
     this.fx.pop(n.pos.x, 1.9, n.pos.z, 'WHOOPS!', '#fff3a0');
     n.say('Whoa-whoa-WHOA—', 1);
-    setTimeout(() => {
+    after(0.65, () => {
       n.scripted = null;
       // near a ledge? Slip into the sea!
       const dz = this.level.dumpSpots.some((s) => {
@@ -632,7 +633,7 @@ export class Game extends Emitter {
         g.fx.pop(n.pos.x, 1.6, n.pos.z, 'BONK', '#ffe14a');
       } else g.knockOut(n, { method: 'slip' });
       this.challenges.event('slip', { npc: n, ledge: dz });
-    }, 650);
+    });
   }
   tossIntoSea(body, x, z, y = WATER_Y) {
     const sx = body.pos.x, sz = body.pos.z;
@@ -744,11 +745,11 @@ export class Game extends Emitter {
       if (k >= 1) {
         b.onHit();
         s.bullet = null;
-        setTimeout(() => {
+        after(0.9, () => {
           if (this.sniper) {
             cam.position.set(s.x, s.y, s.z);
           }
-        }, 900);
+        });
       }
       return;
     }
@@ -825,11 +826,11 @@ export class Game extends Emitter {
     this.audio.stinger('death');
     this.cam.shake(0.4, 0.4);
     this.player.char.setFace('ko');
-    setTimeout(() => {
+    after(2.2, () => {
       this.ended = true;
       this.paused = true;
       this.emit('failed', { reason: 'You got got.' });
-    }, 2200);
+    });
   }
   missionComplete(kind, mesh) {
     if (this.ended) return;
@@ -852,10 +853,10 @@ export class Game extends Emitter {
     };
     this.setpieces.updaters.push(sail);
     this.cam.cinematic(new THREE.Vector3(start.x + 8, 7, start.z - 6), start.clone().add(dir.clone().multiplyScalar(10)), 4.5);
-    setTimeout(() => {
+    after(4.3, () => {
       this.paused = true;
       this.emit('complete', { exit: kind });
-    }, 4300);
+    });
   }
 }
 
