@@ -1,7 +1,7 @@
 // Game: owns the world, the loop, and the shared API every system talks to.
 import * as THREE from 'three';
 import { G, GFX } from '../core/materials.js';
-import { GfxGuard, loadGfxProfile, gpuName } from '../core/gfxguard.js';
+import { GfxGuard, loadGfxProfile, loadStored, saveGfxProfile, gpuName, isPowerVR, POWERVR_PROFILE } from '../core/gfxguard.js';
 import { Input } from '../core/input.js';
 import { Emitter, clamp, dist, yawTo, angleDiff, pick, damp, after, timers } from '../core/util.js';
 import { Level } from './level.js';
@@ -66,8 +66,8 @@ export class Game extends Emitter {
   init(container) {
     const s = this.settings;
     // A device that drew blank frames or crashed before gets a conservative context.
-    const prof = loadGfxProfile();
-    const safe = !!prof.safeContext;
+    let prof = loadGfxProfile();
+    let safe = !!prof.safeContext;
     const canvas = document.createElement('canvas');
     let why = '';
     canvas.addEventListener('webglcontextcreationerror', (e) => (why = e.statusMessage || why));
@@ -80,10 +80,29 @@ export class Game extends Emitter {
       throw err;
     }
     this.renderer = r;
-    // PowerVR (Pixel 10 and others): skin characters on the CPU, see Character.
+    // PowerVR (Pixel 10 and others): skin characters on the CPU (see Character)
+    // and use the conservative settings its driver is known to survive.
     const gpu = gpuName(r.getContext());
     this.gpuName = gpu;
-    CHAR_OPTS.cpuSkin = /PowerVR|Imagination|\bIMG\b/i.test(gpu) || !!prof.cpuSkin || new URLSearchParams(location.search).has('cpuskin');
+    const pvr = isPowerVR(gpu);
+    CHAR_OPTS.cpuSkin = pvr || !!prof.cpuSkin || new URLSearchParams(location.search).has('cpuskin');
+    if (pvr && !(safe && prof.off.includes('shadows'))) {
+      prof = POWERVR_PROFILE(prof, gpu);
+      saveGfxProfile(prof);
+      if (loadStored()?.auto === 'powervr') {
+        // Antialiasing is fixed when the context is made, so restart once,
+        // before anything has been drawn. Drop ?gfxreset or it would loop.
+        const u = new URL(location.href);
+        u.searchParams.delete('gfxreset');
+        location.replace(u.href);
+        const err = new Error('Restarting with PowerVR-safe graphics');
+        err.reload = true;
+        throw err;
+      }
+      // Storage unavailable: keep what we can for this session.
+      safe = true;
+    }
+    this.gfxProfile = prof;
     const mobile = matchMedia('(pointer: coarse)').matches;
     this.mobile = mobile;
     this.pixelRatioMax = safe || s.quality === 'low' ? 1 : s.quality === 'high' ? 2 : mobile ? 1.5 : 1.75;
@@ -127,7 +146,7 @@ export class Game extends Emitter {
     this.interactions = new Interactions(this);
     this.setpieces = new SetPieces(this);
     this.containers = this.level.containers.map((c) => ({ ...c, bodies: [] }));
-    this.gfx = new GfxGuard(this);
+    this.gfx = new GfxGuard(this, this.gfxProfile);
     this.gfx.applyProfile();
     this.cones = new VisionCones(this);
     this.tips = new Tips(this);

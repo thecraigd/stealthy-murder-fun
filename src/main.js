@@ -43,6 +43,7 @@ class App {
     try {
       this.game.init(document.getElementById('game'));
     } catch (e) {
+      if (e.reload) return; // page is restarting with safer graphics
       if (!e.webgl) throw e;
       noWebGL(e.webgl);
       return;
