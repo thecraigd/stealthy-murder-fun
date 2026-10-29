@@ -51,6 +51,11 @@ export function clearGfxProfile() {
   }
 }
 
+export function gpuName(gl) {
+  const ext = gl.getExtension('WEBGL_debug_renderer_info');
+  return (ext && gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) || gl.getParameter(gl.RENDERER) || '';
+}
+
 function gpuInfo(gl) {
   const out = { version: gl.getParameter(gl.VERSION), renderer: gl.getParameter(gl.RENDERER), vendor: gl.getParameter(gl.VENDOR) };
   const ext = gl.getExtension('WEBGL_debug_renderer_info');
@@ -88,18 +93,27 @@ export class GfxGuard {
       console.error(msg);
       this.error(msg);
     };
+    this.stage = 'boot';
     const cv = r.domElement;
-    cv.addEventListener('webglcontextlost', (e) => {
-      e.preventDefault();
-      this.error('WebGL context lost');
-      this.showReport('The browser reset the graphics. Reloading usually fixes it.');
+    cv.addEventListener('webglcontextlost', () => {
+      // The GPU process died (usually a driver crash). Next start: safe mode.
+      this.error(`WebGL context lost during: ${this.stage}`);
+      const off = [...new Set([...(this.profile.off || []), 'shadows'])];
+      this.profile = { ...this.profile, safeContext: true, off, crashed: { stage: this.stage, at: new Date().toISOString() }, gpu: this.info.renderer };
+      saveGfxProfile(this.profile);
+      this.state = 'idle';
+      this.showReport(
+        'Your phone’s graphics driver crashed. Tap Reload: the game will restart in safe graphics mode. ' +
+          'If it then says 3D graphics are switched off, close Chrome completely (swipe it away in recent apps) and open the game again.'
+      );
     });
     cv.addEventListener('webglcontextrestored', () => this.note('WebGL context restored'));
     window.addEventListener('error', (e) => this.error(`JS: ${e.message} @ ${(e.filename || '').split('/').pop()}:${e.lineno}`));
     window.addEventListener('unhandledrejection', (e) => this.error(`Promise: ${e.reason?.message || e.reason}`));
     this.note(`GPU: ${this.info.renderer} (${this.info.vendor})`);
     this.note(`${this.info.version}; ${this.info.ctx}; depth bits ${this.info.depthBits}; frag highp ${this.info.fragHighp}; max tex ${this.info.maxTex}`);
-    this.note(`Screen ${innerWidth}x${innerHeight} @${devicePixelRatio}; profile: ${this.profile.safeContext ? 'safe context, ' : ''}off=[${this.profile.off.join(', ')}]`);
+    this.note(`Screen ${innerWidth}x${innerHeight} @${devicePixelRatio}; profile: ${this.profile.safeContext ? 'safe context, ' : ''}off=[${this.profile.off.join(', ')}]${game.gpuName && /PowerVR|Imagination/i.test(game.gpuName) ? '; PowerVR: CPU skinning' : ''}`);
+    if (this.profile.crashed) this.note(`Previous session: graphics crashed during ${this.profile.crashed.stage} (${this.profile.crashed.at})`);
     this.breakHook();
   }
 
@@ -138,7 +152,7 @@ export class GfxGuard {
       }
       case 'xray':
         scene.traverse((o) => {
-          if (o.isSkinnedMesh && o.renderOrder === 1 && o.material?.depthFunc === THREE.GreaterDepth) o.visible = on;
+          if (o.userData.xray) o.visible = on;
         });
         if (on && g.player) g.player.char.setXray(0xffffff);
         break;
@@ -188,6 +202,7 @@ export class GfxGuard {
 
   // --------------------------------------------------------------- probing
   check(label) {
+    this.stage = label;
     if (this.game.manual || this.state === 'fixing') return;
     this.label = label;
     this.state = 'watch';
@@ -319,6 +334,7 @@ export class GfxGuard {
   }
   nextFeature() {
     this.cur = this.queue.shift();
+    this.stage = `self-check, turning ${this.cur} back on`;
     this.setFeature(this.cur, true);
     this.wait = 15;
   }

@@ -5,6 +5,7 @@ import { Menus } from './game/menus.js';
 import { AudioEngine } from './core/audio.js';
 import { Progress, Challenges } from './game/challenges.js';
 import { G } from './core/materials.js';
+import { forceSafeGfx } from './core/gfxguard.js';
 
 const SKEY = 'cleanslate.settings.v1';
 const coarse = matchMedia('(pointer: coarse)').matches;
@@ -39,11 +40,13 @@ class App {
   async boot() {
     setBoot(0.15);
     await nextFrame();
-    if (!webglOK()) {
-      document.getElementById('boot').innerHTML = '<div class="boot-title">CLEAN SLATE</div><div class="boot-sub">Sorry — this game needs WebGL, which your browser doesn’t seem to support.</div>';
+    try {
+      this.game.init(document.getElementById('game'));
+    } catch (e) {
+      if (!e.webgl) throw e;
+      noWebGL(e.webgl);
       return;
     }
-    this.game.init(document.getElementById('game'));
     setBoot(0.7);
     await nextFrame();
     this.menus = new Menus(this);
@@ -165,13 +168,23 @@ class App {
 function nextFrame() {
   return new Promise((r) => requestAnimationFrame(() => r()));
 }
-function webglOK() {
-  try {
-    const c = document.createElement('canvas');
-    return !!(c.getContext('webgl2') || c.getContext('webgl'));
-  } catch (e) {
-    return false;
-  }
+// The browser refused a WebGL context. On a phone that ran the game before,
+// that's almost always Chrome blocking 3D for this site after a GPU driver
+// crash, which lasts until Chrome restarts.
+function noWebGL(reason) {
+  forceSafeGfx();
+  const esc = (t) => String(t).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
+  const boot = document.getElementById('boot');
+  boot.classList.add('nogl');
+  boot.innerHTML = `<div class="boot-title">CLEAN SLATE</div>
+    <div class="boot-sub"><b>3D graphics are switched off for this page.</b></div>
+    <div class="boot-help">
+      <p>If the game crashed or showed a white screen here before, Chrome has blocked 3D graphics for this site to protect your phone. It clears when Chrome restarts:</p>
+      <ol><li>Close Chrome completely: swipe it away in your recent apps.</li><li>Open the game again. It will start in safe graphics mode.</li></ol>
+      <p>Otherwise, check that hardware acceleration is on and that your browser supports WebGL 2.</p>
+      <p class="boot-why">Browser said: ${esc(reason)}</p>
+    </div>
+    <button class="boot-retry" onclick="location.reload()">Try again</button>`;
 }
 
 window.addEventListener('error', (e) => {

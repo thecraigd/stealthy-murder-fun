@@ -1,12 +1,13 @@
 // Game: owns the world, the loop, and the shared API every system talks to.
 import * as THREE from 'three';
 import { G, GFX } from '../core/materials.js';
-import { GfxGuard, loadGfxProfile } from '../core/gfxguard.js';
+import { GfxGuard, loadGfxProfile, gpuName } from '../core/gfxguard.js';
 import { Input } from '../core/input.js';
 import { Emitter, clamp, dist, yawTo, angleDiff, pick, damp, after, timers } from '../core/util.js';
 import { Level } from './level.js';
 import { CameraRig } from './camera.js';
 import { Player } from './player.js';
+import { CHAR_OPTS } from './character.js';
 import { NPC } from './npc.js';
 import { buildCast, EXTRA_ANCHORS, CONVOS } from './cast.js';
 import { Interactions } from './interact.js';
@@ -64,10 +65,25 @@ export class Game extends Emitter {
   // ---------------------------------------------------------------- setup
   init(container) {
     const s = this.settings;
-    // A device that drew blank frames before gets a conservative context.
-    const safe = !!loadGfxProfile().safeContext;
-    const r = new THREE.WebGLRenderer({ antialias: !safe && s.quality !== 'low', powerPreference: safe ? 'default' : 'high-performance' });
+    // A device that drew blank frames or crashed before gets a conservative context.
+    const prof = loadGfxProfile();
+    const safe = !!prof.safeContext;
+    const canvas = document.createElement('canvas');
+    let why = '';
+    canvas.addEventListener('webglcontextcreationerror', (e) => (why = e.statusMessage || why));
+    let r;
+    try {
+      r = new THREE.WebGLRenderer({ canvas, antialias: !safe && s.quality !== 'low', powerPreference: safe ? 'default' : 'high-performance' });
+    } catch (e) {
+      const err = new Error('WebGL unavailable');
+      err.webgl = why || e.message || 'no context';
+      throw err;
+    }
     this.renderer = r;
+    // PowerVR (Pixel 10 and others): skin characters on the CPU, see Character.
+    const gpu = gpuName(r.getContext());
+    this.gpuName = gpu;
+    CHAR_OPTS.cpuSkin = /PowerVR|Imagination|\bIMG\b/i.test(gpu) || !!prof.cpuSkin || new URLSearchParams(location.search).has('cpuskin');
     const mobile = matchMedia('(pointer: coarse)').matches;
     this.mobile = mobile;
     this.pixelRatioMax = safe || s.quality === 'low' ? 1 : s.quality === 'high' ? 2 : mobile ? 1.5 : 1.75;
