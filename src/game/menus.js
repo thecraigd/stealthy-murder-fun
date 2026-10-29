@@ -61,10 +61,24 @@ export class Menus {
   }
 
   // ---------------------------------------------------------------- portraits
+  // Drawn with the game's own renderer into a corner of the canvas and read
+  // straight back. A second WebGL context, created and destroyed, crashed the
+  // graphics driver on some phones (Pixel 10) and took the game's view with it.
   makePortraits() {
-    const r = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
-    r.setSize(256, 256);
-    r.outputColorSpace = THREE.SRGBColorSpace;
+    this.app.game.gfx.stage = 'portraits';
+    const r = this.app.game.renderer;
+    const gl = r.getContext();
+    const pr = r.getPixelRatio();
+    const db = r.getDrawingBufferSize(new THREE.Vector2());
+    const S = Math.max(64, Math.min(256, db.x, db.y));
+    const buf = new Uint8Array(S * S * 4);
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = S;
+    const ctx = cv.getContext('2d');
+    const img = ctx.createImageData(S, S);
+    r.setScissorTest(true);
+    r.setViewport(0, 0, S / pr, S / pr);
+    r.setScissor(0, 0, S / pr, S / pr);
     const scene = new THREE.Scene();
     scene.add(new THREE.HemisphereLight(0xffffff, 0x9a8a7a, 2.0));
     const sun = new THREE.DirectionalLight(0xfff0d8, 2.4);
@@ -82,15 +96,20 @@ export class Menus {
       cam.lookAt(0, hy - 0.45, 0);
       scene.background = new THREE.Color(bg);
       r.render(scene, cam);
-      this.portraits[id] = r.domElement.toDataURL();
+      gl.readPixels(0, 0, S, S, gl.RGBA, gl.UNSIGNED_BYTE, buf);
+      // GL rows run bottom-up
+      for (let y = 0; y < S; y++) img.data.set(buf.subarray((S - 1 - y) * S * 4, (S - y) * S * 4), y * S * 4);
+      for (let i = 3; i < img.data.length; i += 4) img.data[i] = 255;
+      ctx.putImageData(img, 0, 0);
+      this.portraits[id] = cv.toDataURL();
       scene.remove(c.group);
     };
     make('baron', BODY_PRESETS.baron, { ...OUTFITS.guest, top: 0x7a3a8a, shirt: 0xffffff, tie: 0xf2c14e, pants: 0x5a2a6a, buttons: 0xf2c14e, hat: 'tophat', hatColor: 0x2a2430, hatColor2: 0x7a3a8a }, 0xf2c14e);
     make('vex', BODY_PRESETS.vex, { ...OUTFITS.guest, top: 0x2a2430, dress: 0xc23b4a, pearls: 0xffffff, tie: null, shirt: null, buttons: null, sleeves: 'none' }, 0xf59ac4);
     make('brick', BODY_PRESETS.brick, { ...OUTFITS.trainer, top: 0xffffff, stripe: 0xe0453a, pants: 0x8a8f9a, hat: 'headband', hatColor: 0xe0453a, chain: 0xf2c14e }, 0x7fcf4f);
     make('rook', BODY_PRESETS.rook, OUTFITS.rook, 0x3fb7b0);
-    r.dispose();
-    r.forceContextLoss?.();
+    r.setScissorTest(false);
+    r.setViewport(0, 0, db.x / pr, db.y / pr);
   }
 
   // ---------------------------------------------------------------- title

@@ -242,10 +242,23 @@ export class FX {
     this.pops.push({ el, x, y, z, t: 0, dur: big ? 1.6 : 1.1 });
   }
 
+  // Tracers and rings are pooled: materials are never disposed, because freeing
+  // the last user of a GPU program deletes it, and program churn crashes some
+  // mobile drivers (PowerVR on the Pixel 10).
   tracer(a, b) {
-    const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(a.x, a.y, a.z), new THREE.Vector3(b.x, b.y, b.z)]);
-    const mat = new THREE.LineBasicMaterial({ color: 0xfff1a0, transparent: true, opacity: 1 });
-    const line = new THREE.Line(geo, mat);
+    this.tracerPool = this.tracerPool || [];
+    let line = this.tracerPool.pop();
+    if (!line) {
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
+      line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0xfff1a0, transparent: true, opacity: 1 }));
+      line.frustumCulled = false;
+    }
+    const pa = line.geometry.attributes.position;
+    pa.setXYZ(0, a.x, a.y, a.z);
+    pa.setXYZ(1, b.x, b.y, b.z);
+    pa.needsUpdate = true;
+    line.material.opacity = 1;
     this.root.add(line);
     this.tracers.push({ line, t: 0 });
     this.emit('puff', a.x, a.y, a.z, { n: 2, speed: 0.6, up: 0.4, gravity: -0.5, life: 0.4, size: 0.18, grow: 1, color: 0xfff1a0 });
@@ -272,7 +285,10 @@ export class FX {
   groundRing(x, z, radius = 3, color = 0xffffff, life = 0.6) {
     if (!this.ringGeo) this.ringGeo = new THREE.RingGeometry(0.9, 1, 40).rotateX(-Math.PI / 2);
     this.rings = this.rings || [];
-    const m = new THREE.Mesh(this.ringGeo, new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.7, depthWrite: false }));
+    this.ringPool = this.ringPool || [];
+    const m = this.ringPool.pop() || new THREE.Mesh(this.ringGeo, new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.7, depthWrite: false }));
+    m.material.color.set(color);
+    m.material.opacity = 0.7;
     m.position.set(x, 0.07, z);
     m.renderOrder = 3;
     this.root.add(m);
@@ -337,8 +353,7 @@ export class FX {
       t.line.material.opacity = 1 - t.t / 0.15;
       if (t.t > 0.15) {
         t.line.removeFromParent();
-        t.line.geometry.dispose();
-        t.line.material.dispose();
+        this.tracerPool.push(t.line);
         this.tracers.splice(i, 1);
       }
     }
@@ -362,7 +377,7 @@ export class FX {
       r.m.material.opacity = 0.7 * (1 - k);
       if (k >= 1) {
         r.m.removeFromParent();
-        r.m.material.dispose();
+        this.ringPool.push(r.m);
         this.rings.splice(i, 1);
       }
     }

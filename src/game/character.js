@@ -12,6 +12,9 @@ const B = {
 };
 const BONE_COUNT = 16;
 export const BONES = B;
+// cpuSkin: pose vertices in JS instead of a skinning shader. Some mobile GPU
+// drivers (PowerVR on the Pixel 10) mangle GPU-skinned meshes.
+export const CHAR_OPTS = { cpuSkin: false };
 
 const charMat = makeCharMaterial();
 const outlineMat = makeOutlineMaterial();
@@ -75,6 +78,18 @@ class SkinBuf {
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0.8, 0), 1.6);
     return g;
   }
+}
+
+// Bind-pose copies and per-bone vertex lists for CPU skinning.
+function prepCpuSkin(geo) {
+  const pos = geo.attributes.position, nor = geo.attributes.normal, si = geo.attributes.skinIndex;
+  geo.userData.bindPos = pos.array.slice();
+  geo.userData.bindNor = nor.array.slice();
+  pos.setUsage(THREE.DynamicDrawUsage);
+  nor.setUsage(THREE.DynamicDrawUsage);
+  const lists = Array.from({ length: BONE_COUNT }, () => []);
+  for (let i = 0; i < si.count; i++) lists[si.getX(i)].push(i);
+  geo.userData.byBone = lists.map((l) => Uint32Array.from(l));
 }
 
 const lathe = (pts, seg = 11) => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), seg);
@@ -510,6 +525,7 @@ export class Character {
       this.restPos.push(bn[i].position.clone());
       if (p >= 0) bn[p].add(bn[i]);
     }
+    this.parentIdx = parent;
     this.root = bn[B.root];
     this.group.add(this.root);
     this.group.updateMatrixWorld(true);
@@ -537,25 +553,71 @@ export class Character {
 
   _buildMeshes() {
     const geo = buildGeometry(this.spec.body, this.spec.outfit);
+    const cpu = CHAR_OPTS.cpuSkin;
+    if (cpu) prepCpuSkin(geo);
     if (this.mesh) {
       this.mesh.geometry.dispose();
       this.mesh.geometry = geo;
       this.outline.geometry = geo;
       if (this.xray) this.xray.geometry = geo;
+      if (cpu) this._cpuSkin();
       return;
     }
-    this.mesh = new THREE.SkinnedMesh(geo, charMat);
+    const make = (mat) => {
+      const m = cpu ? new THREE.Mesh(geo, mat) : new THREE.SkinnedMesh(geo, mat);
+      m.frustumCulled = false;
+      if (!cpu) m.bind(this.skeleton, new THREE.Matrix4());
+      this.group.add(m);
+      return m;
+    };
+    this.mesh = make(charMat);
     this.mesh.renderOrder = 2;
     this.mesh.castShadow = true;
     this.mesh.receiveShadow = false;
-    this.mesh.frustumCulled = false;
-    this.mesh.bind(this.skeleton, new THREE.Matrix4());
-    this.group.add(this.mesh);
-    this.outline = new THREE.SkinnedMesh(geo, outlineMat);
+    this.outline = make(outlineMat);
     this.outline.renderOrder = 2;
-    this.outline.frustumCulled = false;
-    this.outline.bind(this.skeleton, new THREE.Matrix4());
-    this.group.add(this.outline);
+    if (cpu) this._cpuSkin();
+  }
+
+  // Rigid skinning on the CPU: every vertex follows exactly one bone. Bone
+  // matrices are built relative to the character's group, which is where the
+  // meshes live and where the skeleton was bound.
+  _cpuSkin() {
+    const bn = this.bones;
+    const inv = this.skeleton.boneInverses;
+    const rel = this._rel || (this._rel = bn.map(() => new THREE.Matrix4()));
+    const M = this._skinM || (this._skinM = bn.map(() => new THREE.Matrix4()));
+    for (let i = 0; i < BONE_COUNT; i++) {
+      const b = bn[i];
+      b.updateMatrix();
+      const p = this.parentIdx[i];
+      if (p < 0) rel[i].copy(b.matrix);
+      else rel[i].multiplyMatrices(rel[p], b.matrix);
+      M[i].multiplyMatrices(rel[i], inv[i]);
+    }
+    const geo = this.mesh.geometry;
+    const ud = geo.userData;
+    const src = ud.bindPos, srcN = ud.bindNor;
+    const pa = geo.attributes.position, na = geo.attributes.normal;
+    const dst = pa.array, dstN = na.array;
+    for (let b = 0; b < BONE_COUNT; b++) {
+      const list = ud.byBone[b];
+      if (!list.length) continue;
+      const e = M[b].elements;
+      for (let j = 0; j < list.length; j++) {
+        const k = list[j] * 3;
+        const x = src[k], y = src[k + 1], z = src[k + 2];
+        dst[k] = e[0] * x + e[4] * y + e[8] * z + e[12];
+        dst[k + 1] = e[1] * x + e[5] * y + e[9] * z + e[13];
+        dst[k + 2] = e[2] * x + e[6] * y + e[10] * z + e[14];
+        const nx = srcN[k], ny = srcN[k + 1], nz = srcN[k + 2];
+        dstN[k] = e[0] * nx + e[4] * ny + e[8] * nz;
+        dstN[k + 1] = e[1] * nx + e[5] * ny + e[9] * nz;
+        dstN[k + 2] = e[2] * nx + e[6] * ny + e[10] * nz;
+      }
+    }
+    pa.needsUpdate = true;
+    na.needsUpdate = true;
   }
 
   setOutfit(outfit) {
@@ -575,10 +637,12 @@ export class Character {
     }
     if (!this.xray) {
       this.xrayMat = makeXrayMaterial(color, 0.6);
-      this.xray = new THREE.SkinnedMesh(this.mesh.geometry, this.xrayMat);
+      const cpu = CHAR_OPTS.cpuSkin;
+      this.xray = cpu ? new THREE.Mesh(this.mesh.geometry, this.xrayMat) : new THREE.SkinnedMesh(this.mesh.geometry, this.xrayMat);
       this.xray.frustumCulled = false;
       this.xray.renderOrder = 1;
-      this.xray.bind(this.skeleton, new THREE.Matrix4());
+      this.xray.userData.xray = true;
+      if (!cpu) this.xray.bind(this.skeleton, new THREE.Matrix4());
       this.group.add(this.xray);
     }
     this.xrayMat.color.set(color);
@@ -1033,6 +1097,7 @@ export class Character {
     }
     this._apply();
     this._updateFace(dt, st);
+    if (CHAR_OPTS.cpuSkin && this.group.visible) this._cpuSkin();
   }
 
   _apply() {

@@ -98,6 +98,8 @@ Some phone GPUs mishandle one of the rendering tricks and draw a blank (white or
 - **Settings → Blank screen? → Use safe graphics** forces safe mode by hand. Open the URL with `?safe` to do the same.
 - **Settings → Graphics report** (or open the URL with `?debug`) shows the GPU, what the check found and any shader errors. A screenshot of it is the most useful bug report.
 - Open the URL with `?gfxreset` to forget a saved fix.
+- **"3D graphics are switched off for this page"**: after a graphics-driver crash, Chrome blocks WebGL for that site until the browser restarts. Close Chrome completely (on Android, swipe it away in recent apps) and reopen the game. It starts in safe mode after a crash.
+- PowerVR GPUs (e.g. the Pixel 10) have driver bugs with GPU-skinned meshes, so on those the characters are posed on the CPU instead. `?cpuskin` forces this anywhere.
 
 ## Tech notes
 
