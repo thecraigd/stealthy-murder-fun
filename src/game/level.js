@@ -508,7 +508,7 @@ export class Level {
     this.world.addCircle(19, -32.9, 0.2, { h: 1.3, sight: 'none' });
     this.A('telescope', 19, -32.2, Math.PI);
     // paths east/west
-    P.floor(L, 22, -32, 30, -28, 'stone', { a: 0xe8dcc4, b: 0xcfc2a8, tile: 1.6 });
+    P.floor(L, 26, -32, 30, -28, 'stone', { a: 0xe8dcc4, b: 0xcfc2a8, tile: 1.6 });
     P.floor(L, -34, -32, -26, -28, 'path');
   }
 
@@ -575,7 +575,7 @@ export class Level {
   buildPool() {
     const L = this;
     const s = this.env;
-    P.floor(L, 24, -12, 44, 4, 'tiles', { a: 0xf8f2e4, b: 0xe8dcc4, tile: 1 });
+    P.floor(L, 25, -12, 44, 4, 'tiles', { a: 0xf8f2e4, b: 0xe8dcc4, tile: 1 });
     this.zone('pool', 'Pool Deck', 'public', 24, -12, 46, 4, { outdoor: true });
     // pool basin
     s.block(34, -0.02, -4, 12.4, 0.12, 8.4, 0xffffff);
@@ -679,8 +679,8 @@ export class Level {
   buildGarden() {
     const L = this;
     // main path & plaza
-    P.floor(L, 0.4, 0.3, 3.6, 9.2, 'path');
-    P.floor(L, 0.4, 18.8, 3.6, 31, 'path');
+    P.floor(L, 0.4, 3, 3.6, 9.2, 'path');
+    P.floor(L, 0.4, 18.8, 3.6, 26, 'path');
     const s = this.env;
     // plaza circle (stone)
     s.cyl(2, -0.05, 14, 5.2, 0.08, 0xe0d4bc, { outline: false, seg: 0 });
@@ -698,7 +698,7 @@ export class Level {
     this.A('front_door_in', 2, -1.6, Math.PI);
     for (const x of [-3.5, 7.5]) P.plantPot(L, x, 1.6, 1.1, 'palm');
     // side paths
-    P.floor(L, 3.6, 4.0, 24, 6.0, 'path');
+    P.floor(L, 3.6, 4.0, 22.5, 6.0, 'path');
     P.floor(L, 22.5, -15, 25, 6, 'path');
     P.floor(L, -22, 4.0, 0.4, 6.0, 'path');
 
@@ -814,7 +814,11 @@ export class Level {
   buildDock() {
     const L = this;
     const s = this.env;
-    P.floor(L, -24, 26, 26, 32, 'planks', { a: 0xc99561, b: 0xb88450, alongX: false });
+    // boardwalk, cut around the boathouse (which has its own floor)
+    const bw = { a: 0xc99561, b: 0xb88450, alongX: false };
+    P.floor(L, -24, 26, 8, 32, 'planks', bw);
+    P.floor(L, 16, 26, 26, 32, 'planks', bw);
+    P.floor(L, 8, 29, 16, 32, 'planks', bw);
     // piers
     P.floor(L, -2, 31.8, 2, 46, 'planks', { a: 0xc99561, b: 0xb88450, alongX: true, y: 0.05 });
     P.floor(L, 15.5, 31.8, 18, 40, 'planks', { a: 0xc99561, b: 0xb88450, alongX: true, y: 0.05 });
@@ -1088,7 +1092,7 @@ export class Level {
     const L = this;
     const s = this.env;
     const x = -40, z = -38.5;
-    P.floor(L, -38, -36, -32, -31, 'path');
+    P.floor(L, -38, -36, -32, -32, 'path');
     // tower (round, stripes)
     const R = 2.6;
     for (let i = 0; i < 4; i++) s.cyl(x, i * 0.65, z, R, 0.65, i % 2 ? PAL.red : PAL.white, { outline: i === 0 });
@@ -1143,7 +1147,7 @@ export class Level {
     W(-46, 23, -40, 23, { t: 0.25, a: 0xb89070, b: 0x8a6a4a, h: 2.4, cornice: false, doors: [[-42, 1.4]] });
     W(-46, 18, -46, 23, { t: 0.25, a: 0x8a6a4a, b: 0xb89070, h: 2.4, cornice: false });
     W(-40, 18, -40, 23, { t: 0.25, a: 0xb89070, b: 0x8a6a4a, h: 2.4, cornice: false, windows: [[20.5, 1.2]] });
-    P.floor(L, -46, 18, -40, 23, 'planks', { a: 0x9a7048, b: 0x8a6038 });
+    P.floor(L, -46, 18, -40, 23, 'planks', { a: 0x9a7048, b: 0x8a6038, y: 0.06 });
     this.zone('hut', 'Fishing Hut', 'dock', -46, 18, -40, 23, { building: 'hut' });
     this.buildings.hut = { minX: -46, maxX: -40, minZ: 18, maxZ: 23 };
     P.bed(L, -44.9, 20.4, 0, 0x7a9a5a);

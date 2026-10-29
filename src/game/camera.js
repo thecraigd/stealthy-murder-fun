@@ -5,7 +5,9 @@ import { damp, dampAngle, clamp, lerp } from '../core/util.js';
 
 export class CameraRig {
   constructor(aspect) {
-    this.camera = new THREE.PerspectiveCamera(40, aspect, 0.3, 400);
+    // near plane at 1 m: the camera never gets closer, and it buys depth precision
+    // (thin floor layers shimmer on phones with 16-bit depth buffers otherwise)
+    this.camera = new THREE.PerspectiveCamera(40, aspect, 1.0, 400);
     this.target = new THREE.Vector3();
     this.focus = new THREE.Vector3();
     this.yaw = 0; // 0 = looking north (camera south of target)
