@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#1b2a44" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="description" content="Clean Slate: a cute cel-shaded stealth game. One island, three targets, a hundred ways to make it look like an accident." />
+  <title>Clean Slate</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%BD%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three.module.min.js" } }
+  </script>
+</head>
+<body>
+  <div id="game"></div>
+  <div id="ui"></div>
+  <div id="boot">
+    <div class="boot-title">CLEAN SLATE</div>
+    <div class="boot-sub">loading the island&hellip;</div>
+    <div class="boot-bar"><div id="boot-fill"></div></div>
+  </div>
+  <noscript>This game needs JavaScript (and WebGL) to run.</noscript>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
