@@ -1,6 +1,7 @@
 // Game: owns the world, the loop, and the shared API every system talks to.
 import * as THREE from 'three';
-import { G } from '../core/materials.js';
+import { G, GFX } from '../core/materials.js';
+import { GfxGuard, loadGfxProfile } from '../core/gfxguard.js';
 import { Input } from '../core/input.js';
 import { Emitter, clamp, dist, yawTo, angleDiff, pick, damp, after, timers } from '../core/util.js';
 import { Level } from './level.js';
@@ -63,11 +64,13 @@ export class Game extends Emitter {
   // ---------------------------------------------------------------- setup
   init(container) {
     const s = this.settings;
-    const r = new THREE.WebGLRenderer({ antialias: s.quality !== 'low', powerPreference: 'high-performance' });
+    // A device that drew blank frames before gets a conservative context.
+    const safe = !!loadGfxProfile().safeContext;
+    const r = new THREE.WebGLRenderer({ antialias: !safe && s.quality !== 'low', powerPreference: safe ? 'default' : 'high-performance' });
     this.renderer = r;
     const mobile = matchMedia('(pointer: coarse)').matches;
     this.mobile = mobile;
-    this.pixelRatioMax = s.quality === 'high' ? 2 : s.quality === 'low' ? 1 : mobile ? 1.5 : 1.75;
+    this.pixelRatioMax = safe || s.quality === 'low' ? 1 : s.quality === 'high' ? 2 : mobile ? 1.5 : 1.75;
     r.setPixelRatio(Math.min(devicePixelRatio, this.pixelRatioMax));
     r.setSize(window.innerWidth, window.innerHeight);
     r.shadowMap.enabled = s.quality !== 'low';
@@ -108,6 +111,8 @@ export class Game extends Emitter {
     this.interactions = new Interactions(this);
     this.setpieces = new SetPieces(this);
     this.containers = this.level.containers.map((c) => ({ ...c, bodies: [] }));
+    this.gfx = new GfxGuard(this);
+    this.gfx.applyProfile();
     this.cones = new VisionCones(this);
     this.tips = new Tips(this);
     this.tutorial = (id) => this.tips.show(id);
@@ -176,6 +181,8 @@ export class Game extends Emitter {
       after(9.5, () => this.ui.toast(this.mobile ? 'Hold 👁 Sense to see targets & guards through walls.' : 'Hold Tab / V to Sense targets & guards through walls.', 'info', '👁'));
     }
     this.last = performance.now();
+    this.gfx.reapply();
+    this.gfx.check('mission');
     this.render();
   }
 
@@ -286,6 +293,11 @@ export class Game extends Emitter {
     this.story.update(dt);
     this.challenges.update(dt);
     this.tips.update(rawDt);
+    // keep device graphics fixes applied to anything spawned since
+    if (this.gfx.profile.off.length && (this._gfxT = (this._gfxT || 0) - rawDt) <= 0) {
+      this._gfxT = 3;
+      this.gfx.reapply();
+    }
     this.fx.update(rawDt);
     this.cones.update(dt);
     this.updateSense();
@@ -328,6 +340,7 @@ export class Game extends Emitter {
     if (!this.renderer) return;
     const cam = this.sniper ? this.sniperCam : this.cam.camera;
     this.renderer.render(this.scene, cam);
+    this.gfx?.afterRender();
   }
 
   // ---------------------------------------------------------------- per-frame helpers
@@ -363,7 +376,7 @@ export class Game extends Emitter {
     G.uCutRadius.value = size.y * (this.cam.portrait ? 0.16 : 0.22);
     G.uCutPos.value.set(p.pos.x, 1.0, p.pos.z);
     G.uCamPos.value.copy(cam.position);
-    G.uCutOn.value = this.sniper ? 0 : 1;
+    G.uCutOn.value = this.sniper || !GFX.cutaway ? 0 : 1;
   }
 
   updateRoofs(dt) {

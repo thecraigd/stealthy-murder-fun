@@ -6,6 +6,7 @@ import { OPPS } from './story.js';
 import { CHALLENGES, MASTERY } from './challenges.js';
 import { START_LOCATIONS, LOADOUT_ITEMS } from './game.js';
 import { ITEMS } from './items.js';
+import { clearGfxProfile, forceSafeGfx } from '../core/gfxguard.js';
 import { formatTime, pick } from '../core/util.js';
 
 const FAIL_TIPS = [
@@ -102,7 +103,10 @@ export class Menus {
       <div class="tagline">One island. Three old friends. A hundred ways to make it look like an accident.</div>`;
     const b = h('div', 'btn-col');
     b.append(
-      this.btn('▶︎ Play', 'big', () => this.briefing()),
+      this.btn('▶︎ Play', 'big', () => {
+        this.app.fullscreen();
+        this.briefing();
+      }),
       this.btn('🏆 Challenges', '', () => this.challenges(() => this.title())),
       this.btn('❓ How to Play', '', () => this.help(() => this.title())),
       this.btn('⚙ Settings', '', () => this.settings(() => this.title())),
@@ -349,6 +353,21 @@ export class Menus {
     row('Music', slider('music'));
     row('Sound effects', slider('sfx'));
     row('Graphics', choice('quality', [['low', 'Low'], ['medium', 'Medium'], ['high', 'High']], () => app.toast?.('Graphics change applies on restart.')));
+    const gp = app.game.gfx?.profile;
+    if (gp && (gp.safeContext || gp.off.length)) {
+      const w = h('div', 'choice');
+      w.append(h('span', 'dim', `Auto-fixed: ${[gp.safeContext ? 'safe mode' : '', ...gp.off].filter(Boolean).join(', ')}`), this.btn('Reset', 'small', () => {
+        clearGfxProfile();
+        app.game.running ? app.restart() : location.reload();
+      }));
+      row('Device fixes', w);
+    } else {
+      row('Blank screen?', this.btn('Use safe graphics', 'small', () => {
+        forceSafeGfx();
+        app.game.running ? app.restart() : location.reload();
+      }));
+    }
+    row('Graphics report', this.btn('Show', 'small', () => app.game.gfx?.showReport()));
     row('Mission guidance', choice('guidance', [[true, 'On'], [false, 'Off']]));
     row('Vision cones', choice('cones', [['guards', 'Guards'], ['all', 'Everyone'], ['off', 'Off']]));
     row('Kill cams', choice('killcam', [[true, 'On'], [false, 'Off']]));

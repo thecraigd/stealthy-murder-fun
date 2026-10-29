@@ -2,7 +2,7 @@
 // skinning onto a tiny skeleton) + one outline hull sharing that skeleton, so
 // a crowd of 40 costs ~80 draw calls. All animation is procedural.
 import * as THREE from 'three';
-import { makeCharMaterial, makeOutlineMaterial, makeXrayMaterial } from '../core/materials.js';
+import { makeCharMaterial, makeOutlineMaterial, makeXrayMaterial, GFX } from '../core/materials.js';
 import { linColor } from '../core/geo.js';
 import { damp, clamp, lerp } from '../core/util.js';
 
@@ -582,7 +582,7 @@ export class Character {
       this.group.add(this.xray);
     }
     this.xrayMat.color.set(color);
-    this.xray.visible = true;
+    this.xray.visible = GFX.xray;
   }
 
   hold(side, obj) {
