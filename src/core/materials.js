@@ -2,6 +2,10 @@
 // whole island renders with very few shader switches.
 import * as THREE from 'three';
 
+// Optional rendering features. The graphics guard switches these off on
+// devices whose GPU draws a blank frame with them on.
+export const GFX = { shadows: true, xray: true, cutaway: true, ocean: true, fog: true, outlines: true, sky: true, fx: true };
+
 // Global uniforms (shared by reference between every patched material).
 export const G = {
   uTime: { value: 0 },

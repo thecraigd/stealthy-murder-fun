@@ -391,7 +391,44 @@ body.touch-mode .item-desc { bottom: calc(76px + var(--safe-b)); }
   .tab-body { max-height: 46vh; }
   body.touch-mode .hint { bottom: calc(200px + var(--safe-b)); }
 }
+/* Phones in landscape with the browser bar showing: barely 300px tall. Stack
+   the text along the bottom centre and shrink the corners so nothing overlaps. */
+@media (max-height: 400px) {
+  .btns { transform: scale(0.72); }
+  .minimap, body.touch-mode .minimap { width: 86px; height: 86px; }
+  body.touch-mode .toasts, .toasts { top: calc(102px + var(--safe-t)); max-width: min(300px, 40vw); }
+  .toasts .toast:nth-last-child(n+3) { display: none; }
+  .toast { font-size: 12px; padding: 5px 9px; }
+  .hint, body.touch-mode .hint { bottom: calc(62px + var(--safe-b)); max-width: min(440px, 48vw); font-size: 12px; padding: 5px 10px; }
+  .subtitles, body.touch-mode .subtitles { bottom: calc(112px + var(--safe-b)); width: min(480px, 50vw); }
+  .subtitles .sub:nth-last-child(n+3) { display: none; }
+  .sub { font-size: 12px; }
+  body.touch-mode .tipbox, .tipbox { top: calc(128px + var(--safe-t)); bottom: auto; left: calc(10px + var(--safe-l)); max-width: min(260px, 32vw); }
+  .tip { font-size: 12px; padding: 6px 9px; }
+  .tip .tip-ic { font-size: 16px; }
+  .objectives { font-size: 11px; max-width: 150px; padding: 5px 8px; }
+  .zone-toast { top: calc(66px + var(--safe-t)); }
+  .zt-name { font-size: 17px; }
+  .bt-title { font-size: clamp(28px, 6vw, 48px); }
+}
+
 @media (orientation: portrait) and (max-width: 640px) {
   .objectives { top: calc(62px + var(--safe-t)); left: calc(10px + var(--safe-l)); }
   .status { top: calc(12px + var(--safe-t)); }
 }
+
+/* ---------------- graphics guard ---------------- */
+#gfx-banner {
+  position: fixed; left: 50%; top: calc(8px + var(--safe-t, 0px)); transform: translate(-50%, -150%); z-index: 60; max-width: min(560px, 92vw);
+  padding: 8px 14px; border-radius: 12px; border: 3px solid var(--ink); background: var(--gold); color: var(--ink);
+  font: 700 14px var(--font); text-align: center; transition: transform 0.3s; pointer-events: none;
+}
+#gfx-banner.show { transform: translate(-50%, 0); }
+#gfx-report {
+  position: fixed; inset: 8px; z-index: 70; display: flex; flex-direction: column; gap: 8px; padding: 12px;
+  border-radius: 16px; border: 3px solid var(--ink); background: rgba(20, 16, 28, 0.94); color: var(--paper);
+}
+#gfx-report .gr-head { font: 700 15px var(--font); }
+#gfx-report pre { flex: 1; margin: 0; overflow: auto; white-space: pre-wrap; word-break: break-word; font: 11px/1.35 ui-monospace, monospace; user-select: text; -webkit-user-select: text; }
+#gfx-report .gr-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+#gfx-report button { padding: 7px 12px; border-radius: 10px; border: 2px solid var(--ink); background: var(--paper); color: var(--ink); font: 700 13px var(--font); }

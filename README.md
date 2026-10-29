@@ -91,6 +91,14 @@ The repo includes `.github/workflows/pages.yml`, which publishes the site on eve
 
 Alternatively, choose **Deploy from a branch** with `main` and `/ (root)`. The site is plain static files, so that works too.
 
+## Troubleshooting
+
+Some phone GPUs mishandle one of the rendering tricks and draw a blank (white or black) view. The game checks for this itself: after the first frames it samples the picture, and if it's blank it switches optional effects off, works out which one is to blame, and remembers the fix for that device. If that isn't enough it restarts once in a safe graphics mode.
+
+- **Settings → Blank screen? → Use safe graphics** forces safe mode by hand. Open the URL with `?safe` to do the same.
+- **Settings → Graphics report** (or open the URL with `?debug`) shows the GPU, what the check found and any shader errors. A screenshot of it is the most useful bug report.
+- Open the URL with `?gfxreset` to forget a saved fix.
+
 ## Tech notes
 
 - three.js r180 is vendored in `vendor/` (MIT licence, see `vendor/THREE_LICENSE`). Nothing is fetched from npm at runtime.
@@ -106,7 +114,7 @@ Alternatively, choose **Deploy from a branch** with `main` and `/ (root)`. The s
 
 | Path | Contents |
 | --- | --- |
-| `src/core/` | Materials, geometry batching, collision/sight/navigation, input, audio |
+| `src/core/` | Materials, geometry batching, collision/sight/navigation, input, audio, graphics self-check |
 | `src/game/level.js`, `props.js`, `terrain.js` | The island |
 | `src/game/character.js`, `outfits.js` | Characters and disguises |
 | `src/game/npc.js`, `cast.js` | AI and the cast's routines and gossip |

@@ -52,6 +52,10 @@ class App {
     this.game.on('pause', () => this.menus.pause());
     this.game.on('complete', (info) => setTimeout(() => this.menus.results(info), 200));
     this.game.on('failed', (info) => this.menus.failed(info));
+    this.game.on('gfxReload', () => {
+      sessionStorage.setItem('cs.gfxSafe', '1');
+      setTimeout(() => (this.game.running ? this.restart() : location.reload()), 1200);
+    });
     // unlock audio on first interaction anywhere
     const unlock = () => {
       this.audio.unlock();
@@ -76,6 +80,7 @@ class App {
       this.start(a.start, a.item);
     } else {
       this.menus.title();
+      this.game.gfx.check('title');
     }
     this.last = performance.now();
     requestAnimationFrame(this.loop);
@@ -111,7 +116,23 @@ class App {
     }
   };
 
+  // Phones: go fullscreen + landscape so the browser bar stops eating the view.
+  // Needs a user gesture, so it's called from button handlers.
+  fullscreen() {
+    if (!coarse || document.fullscreenElement || document.webkitFullscreenElement) return;
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (!req) return;
+    try {
+      const p = req.call(el, { navigationUI: 'hide' });
+      p?.then?.(() => screen.orientation?.lock?.('landscape')?.catch(() => {})).catch(() => {});
+    } catch (e) {
+      /* not allowed here: fine */
+    }
+  }
+
   start(start, item) {
+    this.fullscreen();
     this.lastStart = start;
     this.lastItem = item;
     sessionStorage.setItem('cs.lastStart', start);
