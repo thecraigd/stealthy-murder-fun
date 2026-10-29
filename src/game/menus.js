@@ -373,7 +373,9 @@ export class Menus {
     row('Sound effects', slider('sfx'));
     row('Graphics', choice('quality', [['low', 'Low'], ['medium', 'Medium'], ['high', 'High']], () => app.toast?.('Graphics change applies on restart.')));
     const gp = app.game.gfx?.profile;
-    if (gp && (gp.safeContext || gp.off.length)) {
+    if (gp?.auto === 'powervr') {
+      row('Device fixes', h('span', 'dim', 'Safe graphics for this GPU (PowerVR): no shadows or antialiasing.'));
+    } else if (gp && (gp.safeContext || gp.off.length)) {
       const w = h('div', 'choice');
       w.append(h('span', 'dim', `Auto-fixed: ${[gp.safeContext ? 'safe mode' : '', ...gp.off].filter(Boolean).join(', ')}`), this.btn('Reset', 'small', () => {
         clearGfxProfile();

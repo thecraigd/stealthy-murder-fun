@@ -24,7 +24,7 @@ export function loadGfxProfile() {
     return { safeContext: false, off: [] };
   }
 }
-function saveGfxProfile(p) {
+export function saveGfxProfile(p) {
   try {
     localStorage.setItem(KEY, JSON.stringify(p));
   } catch (e) {
@@ -36,7 +36,7 @@ export function forceSafeGfx() {
   const p = { ...(loadStored() || { off: [] }), safeContext: true, manual: true };
   saveGfxProfile(p);
 }
-function loadStored() {
+export function loadStored() {
   try {
     return JSON.parse(localStorage.getItem(KEY) || 'null');
   } catch (e) {
@@ -49,6 +49,15 @@ export function clearGfxProfile() {
   } catch (e) {
     /* ignore */
   }
+}
+
+// PowerVR (the Pixel 10's GPU): its driver crashed with MSAA, shadows and
+// high resolution on, and ran a whole mission fine without them.
+export const POWERVR = /PowerVR|Imagination|\bIMG\b/i;
+export const POWERVR_PROFILE = (prof, gpu) => ({ ...prof, safeContext: true, off: [...new Set([...(prof.off || []), 'shadows'])], auto: 'powervr', gpu });
+export function isPowerVR(gpu) {
+  if (params.has('fullgfx')) return false;
+  return POWERVR.test(gpu) || params.has('fakepvr');
 }
 
 export function gpuName(gl) {
@@ -73,11 +82,11 @@ function gpuInfo(gl) {
 }
 
 export class GfxGuard {
-  constructor(game) {
+  constructor(game, profile = null) {
     this.game = game;
     this.r = game.renderer;
     this.gl = this.r.getContext();
-    this.profile = loadGfxProfile();
+    this.profile = profile || loadGfxProfile();
     this.info = gpuInfo(this.gl);
     this.lines = [];
     this.errors = [];
@@ -112,7 +121,7 @@ export class GfxGuard {
     window.addEventListener('unhandledrejection', (e) => this.error(`Promise: ${e.reason?.message || e.reason}`));
     this.note(`GPU: ${this.info.renderer} (${this.info.vendor})`);
     this.note(`${this.info.version}; ${this.info.ctx}; depth bits ${this.info.depthBits}; frag highp ${this.info.fragHighp}; max tex ${this.info.maxTex}`);
-    this.note(`Screen ${innerWidth}x${innerHeight} @${devicePixelRatio}; profile: ${this.profile.safeContext ? 'safe context, ' : ''}off=[${this.profile.off.join(', ')}]${game.gpuName && /PowerVR|Imagination/i.test(game.gpuName) ? '; PowerVR: CPU skinning' : ''}`);
+    this.note(`Screen ${innerWidth}x${innerHeight} @${devicePixelRatio}; profile: ${this.profile.safeContext ? 'safe context, ' : ''}off=[${this.profile.off.join(', ')}]${isPowerVR(game.gpuName || '') ? '; PowerVR: CPU skinning' : ''}`);
     if (this.profile.crashed) this.note(`Previous session: graphics crashed during ${this.profile.crashed.stage} (${this.profile.crashed.at})`);
     this.breakHook();
   }
